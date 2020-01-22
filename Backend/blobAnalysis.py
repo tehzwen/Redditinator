@@ -1,5 +1,8 @@
 import sys
 from textblob import TextBlob
+import nltk
+nltk.download('punkt', quiet=True) 
+nltk.download('averaged_perceptron_tagger', quiet=True)
 
 def main():
 
@@ -11,7 +14,6 @@ def main():
         "polarity" : text.polarity,
         "subjectivity" : text.subjectivity,
         "tags": text.tags,
-        
     }
 
     print(val)

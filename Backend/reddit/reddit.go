@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type Reddit struct {
@@ -55,12 +56,13 @@ type AccessToken struct {
 	UserAgent  string
 }
 
-func (r *Reddit) GetAllSubredditData(query, before, after, subreddit string) {
+func (r *Reddit) GetAllSubredditData(query, before, after, subreddit string, wg *sync.WaitGroup) {
 	r.getSubredditData("", before, after, subreddit)
 
 	for {
 		done := r.getSubredditData("", before, strconv.FormatInt(r.CurrentTime, 10), subreddit)
 		if done {
+			wg.Done()
 			break
 		}
 	}
