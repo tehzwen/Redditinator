@@ -3,14 +3,25 @@ package main
 import (
 	"fmt"
 	"os/exec"
+	"runtime"
 	"sync"
 
 	"./reddit"
 )
 
 func main() {
+	//detect what OS we are running
+	const GOOS string = runtime.GOOS
+	var pythonString string
+
+	if GOOS == "linux" {
+		pythonString = "python3"
+	} else if GOOS == "windows" {
+		pythonString = "py"
+	}
+
 	//run the python script and retrieve the output (json), can then cast it to struct
-	c := exec.Command("python3", "./blobAnalysis.py", "That is rough")
+	c := exec.Command(pythonString, "./blobAnalysis.py", "That is rough")
 
 	out, err := c.Output()
 	if err != nil {
