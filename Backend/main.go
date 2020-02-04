@@ -1,56 +1,66 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"os/exec"
-	"runtime"
+	"net/http"
 	"sync"
 
 	"./reddit"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"github.com/jonreiter/govader"
 )
 
 func main() {
-	//detect what OS we are running
-	const GOOS string = runtime.GOOS
-	var pythonString string
 
-	if GOOS == "linux" {
-		pythonString = "python3"
-	} else if GOOS == "windows" {
-		pythonString = "py"
-	}
+	r := mux.NewRouter()
 
-	//run the python script and retrieve the output (json), can then cast it to struct
-	c := exec.Command(pythonString, "./blobAnalysis.py", "That is rough")
+	// Handle CORS
+	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
+	origins := handlers.AllowedOrigins([]string{"*"})
 
-	out, err := c.Output()
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Println(string(out))
+		analyzer := govader.NewSentimentIntensityAnalyzer()
+		sentiment := analyzer.PolarityScores("Alberta's energy sector leaves daunting environmental liabilities")
+		fmt.Println("Compound score:", sentiment.Compound)
+		fmt.Println("Positive score:", sentiment.Positive)
+		fmt.Println("Neutral score:", sentiment.Neutral)
+		fmt.Println("Negative score:", sentiment.Negative)
 
-	//01/01/2017 https://www.unixtimestamp.com/index.php
-	after := "1512086400"
-	before := "1514764800"
+		after := "1580601600"
+		before := "1580688000"
 
-	rClient := reddit.Reddit{
-		TotalPosts: make(map[string][]reddit.SubredditPost),
-	}
+		rClient := reddit.Reddit{
+			TotalPosts: make(map[string][]reddit.SubredditPost),
+		}
 
-	wg := sync.WaitGroup{}
-	subreddits := []string{"alberta", "ProgrammerHumor", "witcher"}
+		wg := sync.WaitGroup{}
+		subreddits := []string{"alberta", "ProgrammerHumor", "witcher"}
 
-	//loop through and get data for each of the subreddits
-	for i := 0; i < len(subreddits); i++ {
-		go rClient.GetAllSubredditData("", before, after, subreddits[i], &wg)
-		wg.Add(1)
-	}
-	wg.Wait()
+		//loop through and get data for each of the subreddits
+		for i := 0; i < len(subreddits); i++ {
+			go rClient.GetAllSubredditData("", before, after, subreddits[i], &wg)
+			wg.Add(1)
+		}
+		wg.Wait()
 
-	fmt.Println("All done!")
-	//print out the lengths of all the data retrieved by this reddit client
-	for key := range rClient.TotalPosts {
-		fmt.Printf("Total posts for %s: %d\n", key, len(rClient.TotalPosts[key]))
-	}
+		fmt.Println("All done!")
+		//print out the lengths of all the data retrieved by this reddit client
+		for key := range rClient.TotalPosts {
+			fmt.Printf("Total posts for %s: %d\n", key, len(rClient.TotalPosts[key]))
+		}
+
+		json.NewEncoder(w).Encode(rClient)
+
+	}).Methods("GET")
+
+	fmt.Println("Now serving on port 4000..")
+	http.ListenAndServe(":4000", handlers.CORS(headers, methods, origins)(r))
+
+	// //01/01/2017 https://www.unixtimestamp.com/index.php
+	// //after := "1512086400"
+	// //before := "1514764800"
 }
