@@ -12,15 +12,20 @@ import (
 )
 
 type Sentiment struct {
-	SentimentPos     float64
-	SentimentNeg     float64
-	SentimentNeu     float64
-	SentimentOverall float64
+	SentimentPos     float64 `db:"sentiment_pos"`
+	SentimentNeg     float64 `db:"sentiment_neg"`
+	SentimentNeu     float64 `db:"sentiment_neu"`
+	SentimentOverall float64 `db:"sentiment_overall"`
 }
 
 type Reddit struct {
 	TotalPosts  []SubredditPost
 	CurrentTime int64
+}
+
+type Subreddit struct {
+	ID   string `db:"id"`
+	Name string `db:"name"`
 }
 
 type SubredditData struct {
@@ -33,33 +38,36 @@ type CommentData struct {
 }
 
 type SubredditPost struct {
-	Author       string `json:"author"`
-	TimeCreated  int64  `json:"created_utc"`
-	FullLink     string `json:"full_link"`
-	ID           string `json:"id"`
-	IsVideo      bool   `json:"is_video"`
-	NumComments  int    `json:"num_comments"`
-	NSFW         bool   `json:"over_18"`
-	Score        int    `json:"score"`
-	SelfText     string `json:"selftext"`
-	SubredditID  string `json:"subreddit_id"`
-	ThumbnailURL string `json:"url"`
-	Title        string `json:"title"`
+	Author       string `json:"author" db:"author"`
+	TimeCreated  int64  `json:"created_utc" db:"created_utc"`
+	FullLink     string `json:"full_link" db:"full_link"`
+	ID           string `json:"id" db:"id"`
+	IsVideo      bool   `json:"is_video" db:"is_video"`
+	NumComments  int    `json:"num_comments" db:"num_comments"`
+	NSFW         bool   `json:"over_18" db:"nsfw"`
+	Score        int    `json:"score" db:"score"`
+	SelfText     string `json:"selftext" db:"self_text"`
+	SubredditID  string `json:"subreddit_id" db:"subreddit_id"`
+	ThumbnailURL string `json:"url" db:"thumbnail_url"`
+	Title        string `json:"title" db:"title"`
 	Sentiment    Sentiment
 	Comments     []PostComment
 }
 
+//TODO add isPoster boolean to this struct
+
 type PostComment struct {
-	Author           string `json:"author"`
-	ID               string `json:"id"`
-	SubredditID      string `json:"subreddit_id"`
+	Author           string `json:"author" db:"author"`
+	ID               string `json:"id" db:"id"`
+	SubredditID      string `json:"subreddit_id" db:"subreddit_id"`
 	Awards           int    `json:"total_awards_received"`
-	Body             string `json:"body"`
-	PostID           string `json:"link_id"`
-	Score            int    `json:"score"`
-	Downs            int    `json:"downs"`
-	Controversiality int    `json:"controversiality"`
-	TimeCreated      int64  `json:"created_utc"`
+	Body             string `json:"body" db:"body"`
+	PostID           string `json:"link_id" db:"post_id"`
+	Score            int    `json:"score" db:"score"`
+	Downs            int    `json:"downs" db:"downs"`
+	IsPostAuthor     bool
+	Controversiality int   `json:"controversiality" db:"controversy"`
+	TimeCreated      int64 `json:"created_utc" db:"created_utc"`
 	Sentiment        Sentiment
 }
 
