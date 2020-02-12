@@ -24,8 +24,8 @@ func main() {
 		Takes a post request body in the form of
 		{
 			"subreddits":["alberta", "witcher"],
-			"to":1234556,
-			"from":1231412123213
+			"before":"1234556",
+			"after":"1231412123213"
 		}
 	*/
 	r.HandleFunc("/subredditfetch", func(w http.ResponseWriter, r *http.Request) {

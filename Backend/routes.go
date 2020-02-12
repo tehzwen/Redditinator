@@ -14,8 +14,8 @@ import (
 
 type CollectRequest struct {
 	Subreddits []string `json:"subreddits"`
-	From       int64    `json:"from"`
-	To         int64    `json:"to"`
+	Before     string   `json:"before"`
+	After      string   `json:"after"`
 }
 
 type AnalyzeRequest struct {
@@ -61,8 +61,11 @@ func CollectDataForSubreddits(w http.ResponseWriter, r *http.Request, DB db.MyDB
 
 	fmt.Println(reqCollect)
 
-	after := "1580601600"
-	before := "1580619600"
+	// after := "1580601600"
+	// before := "1580619600"
+
+	after := reqCollect.After
+	before := reqCollect.Before
 
 	//1580601600 //feb 2 2020
 	//1580688000 //feb 3 2020
