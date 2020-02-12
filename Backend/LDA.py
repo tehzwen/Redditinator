@@ -26,6 +26,7 @@ def analyzeTopic(value, stopWords):
 
     # remove stop words from tokens
     stopped_tokens = [i for i in tokens if not i in stopWords]
+    stopped_tokens = [i for i in stopped_tokens if not isinstance(i, int)]
 
     # stem tokens
     stemmed_tokens = [p_stemmer.stem(i) for i in stopped_tokens]
@@ -40,15 +41,20 @@ def analyzeTopic(value, stopWords):
 
     # generate LDA model
     ldamodel = gensim.models.ldamodel.LdaModel(
-        corpus, num_topics=1, id2word=dictionary, passes=20)
+        corpus, num_topics=1, id2word=dictionary, passes=200)
+
+    temp = ldamodel.print_topic(topn=1, topicno=0)
+    topic = temp.split("*")[1].split("\"")[1]
+    prob = temp.split("*")[0]
 
     val = {
-        "topic" : ldamodel.print_topic(topn=1, topicno=0)
+        "topic": topic,
+        "probability": prob
     }
-
+    print(val)
     print(ldamodel.print_topic(topn=1, topicno=0))
-
-    #print(ldamodel.print_topic(topn=1, topicno=0))
+    # print(ldamodel.top_topics(corpus=corpus, dictionary=dictionary, topn=2))
+    return val
 
 
 def main():
