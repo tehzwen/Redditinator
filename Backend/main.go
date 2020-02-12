@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"./db"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )
@@ -17,6 +18,8 @@ func main() {
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"})
 	origins := handlers.AllowedOrigins([]string{"*"})
 
+	myDB := db.InitDB()
+
 	/*
 		Takes a post request body in the form of
 		{
@@ -26,71 +29,38 @@ func main() {
 		}
 	*/
 	r.HandleFunc("/subredditfetch", func(w http.ResponseWriter, r *http.Request) {
-		CollectDataForSubreddits(w, r)
+		CollectDataForSubreddits(w, r, myDB)
 	}).Methods("POST")
 
+	/*
+		Takes a post request body in the form of
+		{
+			"text":"Example sentence here"
+		}
+	*/
+	r.HandleFunc("/sentiment", func(w http.ResponseWriter, r *http.Request) {
+		AnalyzeSentiment(w, r)
+	}).Methods("POST")
+
+	//WIP
 	r.HandleFunc("/topic", func(w http.ResponseWriter, r *http.Request) {
 		AnalyzeTopics(w, r)
 	}).Methods("POST")
 
+	//Queries - subreddit(optional search for posts of a certain subreddit)
+	r.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
+		GetPosts(w, r, myDB)
+	}).Methods("GET")
+
+	/* Queries -
+	subreddit(optional search for comments of a certain subreddit)
+	postID(optional search for comments by postid)
+	*/
+	r.HandleFunc("/comments", func(w http.ResponseWriter, r *http.Request) {
+		GetComments(w, r, myDB)
+	}).Methods("GET")
+
 	fmt.Println("Now serving on port 4000..")
-
-	//test adding a subreddit to the database
-	// myDB := db.InitDB()
-	// err := myDB.AddSubreddit(reddit.Subreddit{
-	// 	ID:   "12adw3",
-	// 	Name: "testsubreddit"})
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// //test adding a post to the database
-	// err = myDB.AddPost(reddit.SubredditPost{
-	// 	Author:      "test",
-	// 	TimeCreated: 12341231,
-	// 	FullLink:    "https://test/com",
-	// 	ID:          "test_123675",
-	// 	IsVideo:     false,
-	// 	NumComments: 5,
-	// 	NSFW:        false,
-	// 	Score:       150,
-	// 	SelfText:    "Hey there buddy",
-	// 	SubredditID: "12adw3",
-	// 	Title:       "Look at my post!",
-	// 	Sentiment: reddit.Sentiment{
-	// 		SentimentPos:     1.0,
-	// 		SentimentNeg:     0.0,
-	// 		SentimentNeu:     0.0,
-	// 		SentimentOverall: 1.0,
-	// 	},
-	// })
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// err = myDB.AddComment(reddit.PostComment{
-	// 	Author:           "Me",
-	// 	ID:               "890_cvbe",
-	// 	SubredditID:      "12adw3",
-	// 	Awards:           1,
-	// 	Body:             "this is a great post",
-	// 	PostID:           "test_123675",
-	// 	Score:            5,
-	// 	Downs:            0,
-	// 	Controversiality: 0,
-	// 	TimeCreated:      1235344324,
-	// 	Sentiment: reddit.Sentiment{
-	// 		SentimentPos:     1.0,
-	// 		SentimentNeg:     0.0,
-	// 		SentimentNeu:     0.0,
-	// 		SentimentOverall: 1.0,
-	// 	},
-	// 	IsPostAuthor: true,
-	// })
-
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	http.ListenAndServe(":4000", handlers.CORS(headers, methods, origins)(r))
 
 	// //01/01/2017 https://www.unixtimestamp.com/index.php

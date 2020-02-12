@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"sync"
 
+	"./db"
 	"./reddit"
 )
 
@@ -49,7 +50,7 @@ func AnalyzeTopics(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(string(out)))
 }
 
-func CollectDataForSubreddits(w http.ResponseWriter, r *http.Request) {
+func CollectDataForSubreddits(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 
 	reqCollect := CollectRequest{}
 
@@ -78,12 +79,86 @@ func CollectDataForSubreddits(w http.ResponseWriter, r *http.Request) {
 	}
 	wg.Wait()
 
+	//go through the data and add it to the database correctly
+	for x := 0; x < len(rClient.TotalPosts); x++ {
+		err := DB.AddSubreddit(reddit.Subreddit{
+			ID:   rClient.TotalPosts[x].SubredditID,
+			Name: rClient.TotalPosts[x].SubredditName,
+		})
+		if err != nil {
+			panic(err)
+		}
+		err = DB.AddPost(rClient.TotalPosts[x])
+		if err != nil {
+			panic(err)
+		}
+
+		for j := 0; j < len(rClient.TotalPosts[x].Comments); j++ {
+			err = DB.AddComment(rClient.TotalPosts[x].Comments[j])
+			if err != nil {
+				panic(err)
+			}
+		}
+	}
 	fmt.Println("All done!")
-	//print out the lengths of all the data retrieved by this reddit client
-	// for key := range rClient.TotalPosts {
-	// 	fmt.Printf("Total posts for %s: %d\n", key, len(rClient.TotalPosts[key]))
-	// }
-
 	json.NewEncoder(w).Encode(rClient)
+}
 
+func GetPosts(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
+	params := r.URL.Query()
+	subredditQuery := params.Get("subreddit")
+
+	if subredditQuery == "" {
+		vals, err := DB.GetPosts("")
+		if err != nil {
+			panic(err)
+		}
+		json.NewEncoder(w).Encode(vals)
+	} else {
+		vals, err := DB.GetPosts(subredditQuery)
+		if err != nil {
+			panic(err)
+		}
+		json.NewEncoder(w).Encode(vals)
+	}
+}
+
+func GetComments(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
+	params := r.URL.Query()
+	subredditQuery := params.Get("subreddit")
+	postID := params.Get("postID")
+
+	if subredditQuery != "" {
+		vals, err := DB.GetComments(subredditQuery, "")
+		if err != nil {
+			panic(err)
+		}
+		json.NewEncoder(w).Encode(vals)
+	} else if postID != "" {
+		vals, err := DB.GetComments("", postID)
+		if err != nil {
+			panic(err)
+		}
+		json.NewEncoder(w).Encode(vals)
+	} else {
+		vals, err := DB.GetComments("", "")
+		if err != nil {
+			panic(err)
+		}
+		json.NewEncoder(w).Encode(vals)
+	}
+}
+
+type SentimentRequest struct {
+	Text string `json:"text"`
+}
+
+func AnalyzeSentiment(w http.ResponseWriter, r *http.Request) {
+	req := SentimentRequest{}
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		fmt.Println(err)
+	}
+	sent := reddit.GetSentiment(req.Text)
+	json.NewEncoder(w).Encode(sent)
 }

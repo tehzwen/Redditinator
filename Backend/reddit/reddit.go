@@ -38,20 +38,21 @@ type CommentData struct {
 }
 
 type SubredditPost struct {
-	Author       string `json:"author" db:"author"`
-	TimeCreated  int64  `json:"created_utc" db:"created_utc"`
-	FullLink     string `json:"full_link" db:"full_link"`
-	ID           string `json:"id" db:"id"`
-	IsVideo      bool   `json:"is_video" db:"is_video"`
-	NumComments  int    `json:"num_comments" db:"num_comments"`
-	NSFW         bool   `json:"over_18" db:"nsfw"`
-	Score        int    `json:"score" db:"score"`
-	SelfText     string `json:"selftext" db:"self_text"`
-	SubredditID  string `json:"subreddit_id" db:"subreddit_id"`
-	ThumbnailURL string `json:"url" db:"thumbnail_url"`
-	Title        string `json:"title" db:"title"`
-	Sentiment    Sentiment
-	Comments     []PostComment
+	Author        string `json:"author" db:"author"`
+	TimeCreated   int64  `json:"created_utc" db:"created_utc"`
+	FullLink      string `json:"full_link" db:"full_link"`
+	ID            string `json:"id" db:"id"`
+	IsVideo       bool   `json:"is_video" db:"is_video"`
+	NumComments   int    `json:"num_comments" db:"num_comments"`
+	NSFW          bool   `json:"over_18" db:"nsfw"`
+	Score         int    `json:"score" db:"score"`
+	SelfText      string `json:"selftext" db:"self_text"`
+	SubredditID   string `json:"subreddit_id" db:"subreddit_id"`
+	SubredditName string `json:"subreddit_name"`
+	ThumbnailURL  string `json:"url" db:"thumbnail_url"`
+	Title         string `json:"title" db:"title"`
+	Sentiment     Sentiment
+	Comments      []PostComment
 }
 
 //TODO add isPoster boolean to this struct
@@ -114,6 +115,7 @@ func (r *SubredditPost) getCommentData(score string) {
 	} else if len(commentVal.Data) > 0 {
 		//perform sentiment on the comments
 		for i := 0; i < len(commentVal.Data); i++ {
+			commentVal.Data[i].PostID = r.ID
 			commentVal.Data[i].GetCommentSentiment()
 		}
 		r.Comments = append(r.Comments, commentVal.Data...)
@@ -145,7 +147,6 @@ func (r *Reddit) getSubredditData(query, before, after, subreddit string) bool {
 	}
 
 	err = json.Unmarshal(body, &postsData)
-
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
@@ -153,6 +154,7 @@ func (r *Reddit) getSubredditData(query, before, after, subreddit string) bool {
 	//iterate through and get sentiment for each post title
 	for i := 0; i < len(postsData.Data); i++ {
 		postsData.Data[i].GetPostSentiment()
+		postsData.Data[i].SubredditName = subreddit
 	}
 
 	if len(postsData.Data) > 0 {
@@ -164,19 +166,20 @@ func (r *Reddit) getSubredditData(query, before, after, subreddit string) bool {
 }
 
 func (d *SubredditPost) GetPostSentiment() {
-	analyzer := govader.NewSentimentIntensityAnalyzer()
-	sentiment := analyzer.PolarityScores(d.Title)
-	d.Sentiment.SentimentPos = sentiment.Positive
-	d.Sentiment.SentimentNeg = sentiment.Negative
-	d.Sentiment.SentimentNeu = sentiment.Neutral
-	d.Sentiment.SentimentOverall = sentiment.Compound
+	d.Sentiment = GetSentiment(d.Title)
 }
 
 func (c *PostComment) GetCommentSentiment() {
+	c.Sentiment = GetSentiment(c.Body)
+}
+
+func GetSentiment(text string) Sentiment {
 	analyzer := govader.NewSentimentIntensityAnalyzer()
-	sentiment := analyzer.PolarityScores(c.Body)
-	c.Sentiment.SentimentPos = sentiment.Positive
-	c.Sentiment.SentimentNeg = sentiment.Negative
-	c.Sentiment.SentimentNeu = sentiment.Neutral
-	c.Sentiment.SentimentOverall = sentiment.Compound
+	sentiment := analyzer.PolarityScores(text)
+	return Sentiment{
+		SentimentPos:     sentiment.Positive,
+		SentimentNeg:     sentiment.Negative,
+		SentimentNeu:     sentiment.Neutral,
+		SentimentOverall: sentiment.Compound,
+	}
 }
