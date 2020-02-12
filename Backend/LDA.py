@@ -8,7 +8,6 @@ from gensim import corpora, models
 import gensim
 import requests
 
-
 def analyzeTopic(value, stopWords):
 
     tokenizer = RegexpTokenizer(r'\w+')
@@ -43,17 +42,27 @@ def analyzeTopic(value, stopWords):
     ldamodel = gensim.models.ldamodel.LdaModel(
         corpus, num_topics=1, id2word=dictionary, passes=20)
 
-    print(ldamodel.print_topics(num_topics=1, num_words=1))
+    val = {
+        "topic" : ldamodel.print_topic(topn=1, topicno=0)
+    }
+
+    print(ldamodel.print_topic(topn=1, topicno=0))
+
+    #print(ldamodel.print_topic(topn=1, topicno=0))
 
 
 def main():
-    nltk.download('stopwords', quiet=True)
-    nStopWords = stopwords.words('english')
+    args = sys.argv
+    if (len(args) <= 1):
+        print("Usage: ./LDA.py <value>")
+        exit(1)
 
-    while(True):
-        time.sleep(0.2)
-        data = sys.stdin.readlines()
-        if (len(data) > 0):
-            analyzeTopic(data[0], nStopWords)
+    if (stopwords):
+        nStopWords = stopwords.words('english')
+        analyzeTopic(args[1], nStopWords)
+    else:
+        nltk.download('stopwords', quiet=True)
+        nStopWords = stopwords.words('english')
+        analyzeTopic(args[1], nStopWords)
 
 main()

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os/exec"
+	"runtime"
 	"sync"
 
 	"./reddit"
@@ -15,12 +17,43 @@ type CollectRequest struct {
 	To         int64    `json:"to"`
 }
 
+type AnalyzeRequest struct {
+	Text  string `json:"text"`
+	Topic string `json:"topic"`
+}
+
+func AnalyzeTopics(w http.ResponseWriter, r *http.Request) {
+
+	anRequest := AnalyzeRequest{}
+	err := json.NewDecoder(r.Body).Decode(&anRequest)
+	if err != nil {
+		fmt.Println(err)
+	}
+	const GOOS string = runtime.GOOS
+	var pythonString string
+
+	if GOOS == "linux" {
+		pythonString = "python3"
+	} else if GOOS == "windows" {
+		pythonString = "py"
+	}
+
+	c := exec.Command(pythonString, "./LDA.py", anRequest.Text)
+	out, err := c.Output()
+	if err != nil {
+		panic(err)
+	}
+
+	//output := string(out)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(string(out)))
+}
+
 func CollectDataForSubreddits(w http.ResponseWriter, r *http.Request) {
 
 	reqCollect := CollectRequest{}
 
 	err := json.NewDecoder(r.Body).Decode(&reqCollect)
-
 	if err != nil {
 		fmt.Println(err)
 	}
