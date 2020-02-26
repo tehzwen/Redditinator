@@ -60,10 +60,12 @@ func main() {
 		GetComments(w, r, myDB)
 	}).Methods("GET")
 
+	r.HandleFunc("/dailyfetch", func(w http.ResponseWriter, r *http.Request) {
+		DailyRedditFetch(w, r, myDB)
+	})
+
 	fmt.Println("Now serving on port 4000..")
 	http.ListenAndServe(":4000", handlers.CORS(headers, methods, origins)(r))
 
 	// //01/01/2017 https://www.unixtimestamp.com/index.php
-	// //after := "1512086400"
-	// //before := "1514764800"
 }

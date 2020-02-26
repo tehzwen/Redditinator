@@ -70,6 +70,7 @@ type PostComment struct {
 	Controversiality int   `json:"controversiality" db:"controversy"`
 	TimeCreated      int64 `json:"created_utc" db:"created_utc"`
 	Sentiment        Sentiment
+	ParentID         string `json:"parent_id" db:"parent_id"`
 }
 
 func (r *Reddit) GetAllSubredditData(query, before, after, subreddit string, wg *sync.WaitGroup) {
@@ -86,7 +87,7 @@ func (r *Reddit) GetAllSubredditData(query, before, after, subreddit string, wg 
 
 	//once done we need to go analyze the comments for each of the post
 	for i := 0; i < len(r.TotalPosts); i++ {
-		r.TotalPosts[i].getCommentData("1")
+		r.TotalPosts[i].getCommentData("10")
 	}
 	wg.Done()
 }

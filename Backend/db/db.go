@@ -137,3 +137,26 @@ func (db *MyDB) GetComments(subreddit, postID string) ([]reddit.PostComment, err
 
 	return myComments, nil
 }
+
+func (db *MyDB) GetSubredditNames() ([]string, error) {
+	query := "SELECT name FROM subreddit"
+	subreddits := []string{}
+
+	rows, err := db.DB.Query(query)
+
+	if err != nil {
+		return subreddits, err
+	}
+
+	for rows.Next() {
+		var temp string
+		err := rows.Scan(&temp)
+
+		if err != nil {
+			return subreddits, err
+		}
+		subreddits = append(subreddits, temp)
+	}
+
+	return subreddits, nil
+}
