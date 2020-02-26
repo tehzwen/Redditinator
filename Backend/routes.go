@@ -164,6 +164,7 @@ func GetComments(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 				panic(err)
 			}
 			json.NewEncoder(w).Encode(vals)
+			LogComments(vals)
 		} else {
 
 			vals, err := DB.GetComments("", "")
@@ -171,6 +172,7 @@ func GetComments(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 				panic(err)
 			}
 			json.NewEncoder(w).Encode(vals)
+			LogComments(vals)
 		}
 	}
 }
@@ -190,15 +192,12 @@ func AnalyzeSentiment(w http.ResponseWriter, r *http.Request) {
 }
 
 func DailyRedditFetch(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
-
 	subs, err := DB.GetSubredditNames()
-
 	if err != nil {
 		panic(err)
 	}
 
 	rClient := reddit.Reddit{}
-
 	//get the current time
 	currTime := time.Now().Unix()
 	before := strconv.FormatInt(currTime, 10)
@@ -233,12 +232,9 @@ func DailyRedditFetch(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 			}
 		}
 	}
-
-	lengthString := ""
-	fmt.Sprintf(lengthString, "%d", len(rClient.TotalPosts))
-
+	lengthString := strconv.Itoa(len(rClient.TotalPosts))
 	testData := []byte("Daily fetch of data completed successfully. Gathered " + lengthString + " posts.")
-	f, err := os.OpenFile("dailyfetch.log",
+	f, err := os.OpenFile("status.log",
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Println(err)
@@ -254,4 +250,18 @@ func DailyRedditFetch(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 	}
 
 	json.NewEncoder(w).Encode(rClient)
+}
+
+func LogComments(vals []reddit.PostComment) {
+	lengthString := strconv.Itoa(len(vals))
+	testData := []byte("Retrieved " + lengthString + " comments.")
+	f, err := os.OpenFile("status.log",
+		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println(err)
+	}
+	defer f.Close()
+
+	logger := log.New(f, "Comment Fetch: ", log.LstdFlags)
+	logger.Println(string(testData))
 }
