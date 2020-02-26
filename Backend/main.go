@@ -55,6 +55,7 @@ func main() {
 	/* Queries -
 	subreddit(optional search for comments of a certain subreddit)
 	postID(optional search for comments by postid)
+	topLevel(optional boolean for only top level comments)
 	*/
 	r.HandleFunc("/comments", func(w http.ResponseWriter, r *http.Request) {
 		GetComments(w, r, myDB)

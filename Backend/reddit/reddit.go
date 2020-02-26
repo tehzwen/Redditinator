@@ -87,13 +87,13 @@ func (r *Reddit) GetAllSubredditData(query, before, after, subreddit string, wg 
 
 	//once done we need to go analyze the comments for each of the post
 	for i := 0; i < len(r.TotalPosts); i++ {
-		r.TotalPosts[i].getCommentData("10")
+		r.TotalPosts[i].getCommentData("0")
 	}
 	wg.Done()
 }
 
 func (r *SubredditPost) getCommentData(score string) {
-	request := "https://api.pushshift.io/reddit/comment/search/?link_id=" + r.ID + "&limit=1000&sort=desc&sort_type=score&score=%3E" + score
+	request := "https://api.pushshift.io/reddit/comment/search/?link_id=" + r.ID + "&limit=1000"
 	fmt.Println("Fetching...", request)
 	res, err := http.Get(request)
 	if err != nil {

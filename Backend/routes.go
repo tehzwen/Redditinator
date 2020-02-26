@@ -134,6 +134,7 @@ func GetComments(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 	params := r.URL.Query()
 	subredditQuery := params.Get("subreddit")
 	postID := params.Get("postID")
+	topLevel := params.Get("topLevel")
 
 	if subredditQuery != "" {
 		vals, err := DB.GetComments(subredditQuery, "")
@@ -142,17 +143,35 @@ func GetComments(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 		}
 		json.NewEncoder(w).Encode(vals)
 	} else if postID != "" {
-		vals, err := DB.GetComments("", postID)
-		if err != nil {
-			panic(err)
+		if topLevel != "" {
+			vals, err := DB.GetTopLevelComments(postID)
+			if err != nil {
+				panic(err)
+			}
+			json.NewEncoder(w).Encode(vals)
+		} else {
+			vals, err := DB.GetComments("", postID)
+			if err != nil {
+				panic(err)
+			}
+			json.NewEncoder(w).Encode(vals)
 		}
-		json.NewEncoder(w).Encode(vals)
+
 	} else {
-		vals, err := DB.GetComments("", "")
-		if err != nil {
-			panic(err)
+		if topLevel != "" {
+			vals, err := DB.GetTopLevelComments("")
+			if err != nil {
+				panic(err)
+			}
+			json.NewEncoder(w).Encode(vals)
+		} else {
+
+			vals, err := DB.GetComments("", "")
+			if err != nil {
+				panic(err)
+			}
+			json.NewEncoder(w).Encode(vals)
 		}
-		json.NewEncoder(w).Encode(vals)
 	}
 }
 

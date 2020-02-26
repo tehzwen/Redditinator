@@ -80,9 +80,9 @@ func (db *MyDB) AddPost(p reddit.SubredditPost) error {
 
 func (db *MyDB) AddComment(p reddit.PostComment) error {
 	bodyString := strings.ReplaceAll(p.Body, "'", "")
-	query := fmt.Sprintf(`addComment '%s', '%s', '%s', %d, '%s', %f, %f, %f, %f, '%s', %t, %d, %d, %d, %d`,
+	query := fmt.Sprintf(`addComment '%s', '%s', '%s', %d, '%s', %f, %f, %f, %f, '%s', %t, %d, %d, %d, %d, %s`,
 		p.ID, p.PostID, p.SubredditID, p.Score, p.Author, p.Sentiment.SentimentPos, p.Sentiment.SentimentNeg, p.Sentiment.SentimentNeu,
-		p.Sentiment.SentimentOverall, bodyString, p.IsPostAuthor, p.Awards, p.TimeCreated, p.Controversiality, p.Downs)
+		p.Sentiment.SentimentOverall, bodyString, p.IsPostAuthor, p.Awards, p.TimeCreated, p.Controversiality, p.Downs, p.ParentID)
 	_, err := db.DB.Exec(query)
 	return err
 }
@@ -124,7 +124,7 @@ func (db *MyDB) GetComments(subreddit, postID string) ([]reddit.PostComment, err
 	for rows.Next() {
 		p := reddit.PostComment{}
 		err := rows.Scan(&p.ID, &p.PostID, &p.SubredditID, &p.Score, &p.Author, &p.Sentiment.SentimentPos, &p.Sentiment.SentimentNeg, &p.Sentiment.SentimentNeu,
-			&p.Sentiment.SentimentOverall, &p.Body, &p.IsPostAuthor, &p.Awards, &p.TimeCreated, &p.Controversiality, &p.Downs)
+			&p.Sentiment.SentimentOverall, &p.Body, &p.IsPostAuthor, &p.Awards, &p.TimeCreated, &p.Controversiality, &p.Downs, &p.ParentID)
 
 		if err != nil {
 			panic(err)
@@ -159,4 +159,33 @@ func (db *MyDB) GetSubredditNames() ([]string, error) {
 	}
 
 	return subreddits, nil
+}
+
+func (db *MyDB) GetTopLevelComments(postID string) ([]reddit.PostComment, error) {
+	var query string
+	if postID != "" {
+		query = "SELECT * FROM comment WHERE parent_id LIKE 't3%' AND post_id='" + postID + "'"
+
+	} else {
+		query = "SELECT * FROM comment WHERE parent_id LIKE 't3%'"
+
+	}
+	comments := []reddit.PostComment{}
+	rows, err := db.DB.Query(query)
+
+	if err != nil {
+		return comments, err
+	}
+
+	for rows.Next() {
+		p := reddit.PostComment{}
+		err := rows.Scan(&p.ID, &p.PostID, &p.SubredditID, &p.Score, &p.Author, &p.Sentiment.SentimentPos, &p.Sentiment.SentimentNeg, &p.Sentiment.SentimentNeu,
+			&p.Sentiment.SentimentOverall, &p.Body, &p.IsPostAuthor, &p.Awards, &p.TimeCreated, &p.Controversiality, &p.Downs, &p.ParentID)
+		if err != nil {
+			return comments, err
+		}
+		comments = append(comments, p)
+	}
+
+	return comments, nil
 }
