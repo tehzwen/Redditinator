@@ -93,33 +93,35 @@ func (r *Reddit) GetAllSubredditData(query, before, after, subreddit string, wg 
 }
 
 func (r *SubredditPost) getCommentData(score string) {
-	request := "https://api.pushshift.io/reddit/comment/search/?link_id=" + r.ID + "&limit=1000"
-	fmt.Println("Fetching...", request)
-	res, err := http.Get(request)
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
-
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
-
-	commentVal := CommentData{}
-
-	err = json.Unmarshal(body, &commentVal)
-
-	if err != nil {
-		fmt.Println("ERROR PARSING ", commentVal)
-	} else if len(commentVal.Data) > 0 {
-		//perform sentiment on the comments
-		for i := 0; i < len(commentVal.Data); i++ {
-			commentVal.Data[i].PostID = r.ID
-			commentVal.Data[i].GetCommentSentiment()
+	if r.NumComments > 0 {
+		request := "https://api.pushshift.io/reddit/comment/search/?link_id=" + r.ID + "&limit=1000"
+		fmt.Println("Fetching...", request)
+		res, err := http.Get(request)
+		if err != nil {
+			fmt.Println("Error: ", err)
 		}
-		r.Comments = append(r.Comments, commentVal.Data...)
+
+		defer res.Body.Close()
+		body, err := ioutil.ReadAll(res.Body)
+
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+
+		commentVal := CommentData{}
+
+		err = json.Unmarshal(body, &commentVal)
+
+		if err != nil {
+			fmt.Println("ERROR PARSING ", commentVal)
+		} else if len(commentVal.Data) > 0 {
+			//perform sentiment on the comments
+			for i := 0; i < len(commentVal.Data); i++ {
+				commentVal.Data[i].PostID = r.ID
+				commentVal.Data[i].GetCommentSentiment()
+			}
+			r.Comments = append(r.Comments, commentVal.Data...)
+		}
 	}
 }
 
@@ -154,8 +156,7 @@ func (r *Reddit) getSubredditData(query, before, after, subreddit string) bool {
 
 	//iterate through and get sentiment for each post title
 	for i := 0; i < len(postsData.Data); i++ {
-		//postsData.Data[i].GetPostSentiment()
-		GetSentiment(postsData.Data[i].Title)
+		postsData.Data[i].GetPostSentiment()
 		postsData.Data[i].SubredditName = subreddit
 	}
 

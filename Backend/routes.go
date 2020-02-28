@@ -243,7 +243,6 @@ func DailyRedditFetch(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 
 	logger := log.New(f, "Reddit Fetch Log: ", log.LstdFlags)
 	logger.Println(string(testData))
-	logger.Println("more text to append")
 
 	if err != nil {
 		panic(err)
