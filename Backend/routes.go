@@ -211,7 +211,7 @@ func DailyRedditFetch(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 	}
 	wg.Wait()
 
-	//go through the data and add it to the database correctly
+	go through the data and add it to the database correctly
 	for x := 0; x < len(rClient.TotalPosts); x++ {
 		err := DB.AddSubreddit(reddit.Subreddit{
 			ID:   rClient.TotalPosts[x].SubredditID,

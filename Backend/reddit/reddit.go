@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/jonreiter/govader"
+	"github.com/tehzwen/govader"
 )
 
 type Sentiment struct {
@@ -154,7 +154,8 @@ func (r *Reddit) getSubredditData(query, before, after, subreddit string) bool {
 
 	//iterate through and get sentiment for each post title
 	for i := 0; i < len(postsData.Data); i++ {
-		postsData.Data[i].GetPostSentiment()
+		//postsData.Data[i].GetPostSentiment()
+		GetSentiment(postsData.Data[i].Title)
 		postsData.Data[i].SubredditName = subreddit
 	}
 
@@ -175,6 +176,7 @@ func (c *PostComment) GetCommentSentiment() {
 }
 
 func GetSentiment(text string) Sentiment {
+	//fmt.Println(text)
 	analyzer := govader.NewSentimentIntensityAnalyzer()
 	sentiment := analyzer.PolarityScores(text)
 	return Sentiment{
