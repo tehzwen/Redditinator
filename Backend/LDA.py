@@ -1,74 +1,132 @@
 import nltk
-import sys
-import time
-from nltk.corpus import stopwords
-from nltk.tokenize import RegexpTokenizer
-from nltk.stem.porter import PorterStemmer
-from gensim import corpora, models
+import re
+import numpy as np
+import pandas as pd
+from pprint import pprint
+
 import gensim
+import gensim.corpora as corpora
+from gensim.utils import simple_preprocess
+from gensim.models import CoherenceModel
+
+import spacy
+import pyLDAvis
+import pyLDAvis.gensim  # don't skip this
+import matplotlib.pyplot as plt
+
 import requests
+import json
 
-def analyzeTopic(value, stopWords):
+from nltk.corpus import stopwords
+stop_words = stopwords.words('english')
+stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'lines']) #temp
 
-    tokenizer = RegexpTokenizer(r'\w+')
+# Referencing tutorial: https://www.machinelearningplus.com/nlp/topic-modeling-gensim-python/
 
-    # create English stop words list
+def getComments(postID):
+        #url = "http://167.172.132.5:4000/comments?postID="+postID+"&topLevel=true"
+        url = "http://167.172.132.5:4000/comments?postID="+postID
 
-    # Create p_stemmer of class PorterStemmer
-    p_stemmer = PorterStemmer()
+        #payload = "{\n\"subreddits\":"+str(subreddits).replace("\'", "\"")+",\n\"to\":"+end+",\n\"from\":"+start+"\n}"
+        headers = {
+        'Content-Type': 'text/plain'
+        }
+       
+        response = requests.request("GET", url, headers=headers)
 
-    # list for tokenized documents in loop
-    texts = []
+        data = response.json()
+        return data
 
-    # Convert strings to raw text
-    raw = value.lower()
-    tokens = tokenizer.tokenize(raw)
+res = getComments("apyg0h")
 
-    # remove stop words from tokens
-    stopped_tokens = [i for i in tokens if not i in stopWords]
-    stopped_tokens = [i for i in stopped_tokens if not isinstance(i, int)]
+# Each email = one document
+#df = pd.read_json('https://raw.githubusercontent.com/selva86/datasets/master/newsgroups.json')
 
-    # stem tokens
-    stemmed_tokens = [p_stemmer.stem(i) for i in stopped_tokens]
+# df.head()
+# data = df.content.values.tolist()
 
-    # add tokens to list
-    texts.append(stemmed_tokens)
-    # turn our tokenized documents into a id <-> term dictionary
-    dictionary = corpora.Dictionary(texts)
+data = []
+for val in res:
+        pprint(val['body'])
+        temp = val['body']
+        data.append(temp)
 
-    # convert tokenized documents into a document-term matrix
-    corpus = [dictionary.doc2bow(text) for text in texts]
+# Remove Emails, temp
+print(data)
+#data = [re.sub('\S*@\S*\s?', '', sent) for sent in data]
 
-    # generate LDA model
-    ldamodel = gensim.models.ldamodel.LdaModel(
-        corpus, num_topics=1, id2word=dictionary, passes=200)
+# Remove new line characters
+data = [re.sub('\s+', ' ', sent) for sent in data]
 
-    temp = ldamodel.print_topic(topn=1, topicno=0)
-    topic = temp.split("*")[1].split("\"")[1]
-    prob = temp.split("*")[0]
+# Remove distracting single quotes
+data = [re.sub("\'", "", sent) for sent in data]
 
-    val = {
-        "topic": topic,
-        "probability": prob
-    }
-    print(val)
-    print(ldamodel.print_topic(topn=1, topicno=0))
-    # print(ldamodel.top_topics(corpus=corpus, dictionary=dictionary, topn=2))
-    return val
+# Define functions for stopwords, bigrams, trigrams and lemmatization
+def sent_to_words(sentences):
+    for sentence in sentences:
+        yield(gensim.utils.simple_preprocess(str(sentence), deacc=True))  # deacc=True removes punctuations
 
+def remove_stopwords(texts):
+    return [[word for word in simple_preprocess(str(doc)) if word not in stop_words] for doc in texts]
 
-def main():
-    args = sys.argv
-    if (len(args) <= 1):
-        print("Usage: ./LDA.py <value>")
-        exit(1)
+def make_bigrams(texts):
+    return [bigram_mod[doc] for doc in texts]
 
-    if (stopwords):
-        nStopWords = stopwords.words('english')
-        analyzeTopic(args[1], nStopWords)
-    else:
-        nltk.download('stopwords', quiet=True)
-        nStopWords = stopwords.words('english')
-        analyzeTopic(args[1], nStopWords)
+def make_trigrams(texts):
+    return [trigram_mod[bigram_mod[doc]] for doc in texts]
 
-main()
+def lemmatization(texts, allowed_postags=['NOUN', 'ADJ', 'VERB', 'ADV']):
+    """https://spacy.io/api/annotation"""
+    texts_out = []
+    for sent in texts:
+        doc = nlp(" ".join(sent))
+        texts_out.append([token.lemma_ for token in doc if token.pos_ in allowed_postags])
+    return texts_out
+
+# Creates list of cleaned documents
+data_words = list(sent_to_words(data))
+
+# Build the bigram and trigram models
+bigram = gensim.models.Phrases(data_words, min_count=5, threshold=100) # higher threshold fewer phrases.
+trigram = gensim.models.Phrases(bigram[data_words], threshold=100)
+
+# Faster way to get a sentence clubbed as a trigram/bigram
+bigram_mod = gensim.models.phrases.Phraser(bigram)
+trigram_mod = gensim.models.phrases.Phraser(trigram)
+
+# Remove Stop Words
+data_words_nostops = remove_stopwords(data_words)
+
+# Form Bigrams
+data_words_bigrams = make_bigrams(data_words_nostops)
+
+# Initialize spacy 'en' model, keeping only tagger component (for efficiency)
+nlp = spacy.load("en_core_web_sm", disable=['parser', 'ner'])
+
+# Do lemmatization keeping only nouns
+data_lemmatized = lemmatization(data_words_bigrams, allowed_postags=['NOUN'])
+
+# Create Dictionary
+id2word = corpora.Dictionary(data_lemmatized)
+
+# Create Corpus
+texts = data_lemmatized
+
+# Term Document Frequency
+corpus = [id2word.doc2bow(text) for text in texts]
+
+lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
+                                           id2word=id2word,
+                                           num_topics=2,
+                                           random_state=100,
+                                           update_every=1,
+                                           chunksize=100,
+                                           passes=100,
+                                           alpha='auto',
+                                           per_word_topics=True)
+
+pprint(lda_model.print_topics())
+
+# Visual representation
+vis = pyLDAvis.gensim.prepare(lda_model, corpus, id2word)
+pyLDAvis.show(vis)
