@@ -1,0 +1,23 @@
+{
+  "name": "reddinator",
+  "description": "Displays sentiment analysis and popularity of topics on Reddit.",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "icons": {
+    "48": "icons/icon_54.png",
+    "128": "icons/icon_54.png"
+  },
+  "browser_action": {
+    "default_title": "reddinator",
+    "default_popup": "popup/popup.html"
+  },
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+  "options_ui": {
+    "page": "options/options.html",
+    "chrome_style": true
+  }
+}
