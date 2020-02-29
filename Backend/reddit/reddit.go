@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/jonreiter/govader"
+	"github.com/tehzwen/govader"
 )
 
 type Sentiment struct {
@@ -70,6 +70,7 @@ type PostComment struct {
 	Controversiality int   `json:"controversiality" db:"controversy"`
 	TimeCreated      int64 `json:"created_utc" db:"created_utc"`
 	Sentiment        Sentiment
+	ParentID         string `json:"parent_id" db:"parent_id"`
 }
 
 func (r *Reddit) GetAllSubredditData(query, before, after, subreddit string, wg *sync.WaitGroup) {
@@ -86,39 +87,41 @@ func (r *Reddit) GetAllSubredditData(query, before, after, subreddit string, wg 
 
 	//once done we need to go analyze the comments for each of the post
 	for i := 0; i < len(r.TotalPosts); i++ {
-		r.TotalPosts[i].getCommentData("1")
+		r.TotalPosts[i].getCommentData("0")
 	}
 	wg.Done()
 }
 
 func (r *SubredditPost) getCommentData(score string) {
-	request := "https://api.pushshift.io/reddit/comment/search/?link_id=" + r.ID + "&limit=1000&sort=desc&sort_type=score&score=%3E" + score
-	fmt.Println("Fetching...", request)
-	res, err := http.Get(request)
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
-
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
-
-	commentVal := CommentData{}
-
-	err = json.Unmarshal(body, &commentVal)
-
-	if err != nil {
-		fmt.Println("ERROR PARSING ", commentVal)
-	} else if len(commentVal.Data) > 0 {
-		//perform sentiment on the comments
-		for i := 0; i < len(commentVal.Data); i++ {
-			commentVal.Data[i].PostID = r.ID
-			commentVal.Data[i].GetCommentSentiment()
+	if r.NumComments > 0 {
+		request := "https://api.pushshift.io/reddit/comment/search/?link_id=" + r.ID + "&limit=1000"
+		fmt.Println("Fetching...", request)
+		res, err := http.Get(request)
+		if err != nil {
+			fmt.Println("Error: ", err)
 		}
-		r.Comments = append(r.Comments, commentVal.Data...)
+
+		defer res.Body.Close()
+		body, err := ioutil.ReadAll(res.Body)
+
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+
+		commentVal := CommentData{}
+
+		err = json.Unmarshal(body, &commentVal)
+
+		if err != nil {
+			fmt.Println("ERROR PARSING ", commentVal)
+		} else if len(commentVal.Data) > 0 {
+			//perform sentiment on the comments
+			for i := 0; i < len(commentVal.Data); i++ {
+				commentVal.Data[i].PostID = r.ID
+				commentVal.Data[i].GetCommentSentiment()
+			}
+			r.Comments = append(r.Comments, commentVal.Data...)
+		}
 	}
 }
 
@@ -174,6 +177,7 @@ func (c *PostComment) GetCommentSentiment() {
 }
 
 func GetSentiment(text string) Sentiment {
+	//fmt.Println(text)
 	analyzer := govader.NewSentimentIntensityAnalyzer()
 	sentiment := analyzer.PolarityScores(text)
 	return Sentiment{
