@@ -4,9 +4,11 @@
 
 <script>
 import Home from "./components/Home";
+import Data from "./components/Data";
 export default {
   components: {
-    Home
+    Home,
+    Data
   },
   data() {
     return {
