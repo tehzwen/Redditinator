@@ -1,14 +1,13 @@
 <template>
-<div class="background">
-  <keep-alive></keep-alive>
-  <img src="/assets/redditinator.png" />
-  <div>
-    <input v-model="topic" />
-    <button v-on:click="testFunc">Analyze!</button>
+  <div class="background">
+    <img src="/assets/redditinator.png">
+    <div>
+      <input v-model="topic" />
+      <button v-on:click="testFunc">Analyze!</button>
+    </div>
+    <body>Type in a Subreddit and click Analyze!</body>
+    <button v-on:click="goToData">Go to data!</button>
   </div>
-  <body>Type in a Subreddit and click Analyze!</body>
-  <button v-on:click="goToData">Go to data!</button>
-</div>
 </template>
 
 <script>
