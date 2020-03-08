@@ -4,28 +4,12 @@
       <component:is="dynamicComponent"></component>
     </keep-alive>
     <img src="/assets/redditinator.png">
-    <div>
-      <input v-model="topic" />
-      <button v-on:click="testFunc">Analyze!</button>
-    </div>
-    <body>Type in a Subreddit and click Analyze!</body>
+    <body>Data Page</body>
   </div>
 </template>
 
 <script>
 export default {
-  name: "Home",
-  data: () => {
-    return {
-      topic: null
-    };
-  },
-  mounted() {},
-  methods: {
-    testFunc() {
-      alert(this.topic)
-    }
-  }
 };
 </script>
 
