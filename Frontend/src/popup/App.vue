@@ -1,7 +1,7 @@
 <template>
   <div>
-    <Home v-on:change="handleChange" v-if="currentLocation==='home'" />
-    <Data v-on:change="handleChange" v-if="currentLocation==='data'" />
+    <Home v-on:page="pageChange" v-if="currentLocation==='home'" />
+    <Data v-on:page="pageChange" v-if="currentLocation==='data'" />
   </div>
 </template>
 
@@ -23,12 +23,8 @@ export default {
     testFunc() {
       console.log("here");
     },
-    handleChange() {
-      if (this.currentLocation === "home") {
-        this.currentLocation = "data";
-      } else {
-        this.currentLocation = "home";
-      }
+    pageChange(val) {
+      this.currentLocation = val.page;
     }
   }
 };

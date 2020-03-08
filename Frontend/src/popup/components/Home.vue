@@ -1,13 +1,13 @@
 <template>
-  <div class="background">
-    <img src="/assets/redditinator.png">
-    <div>
-      <input v-model="topic" />
-      <button v-on:click="testFunc">Analyze!</button>
-    </div>
-    <body>Type in a Subreddit and click Analyze!</body>
-    <button v-on:click="goToData">Go to data!</button>
+<div class="background">
+  <img src="/assets/redditinator.png" />
+  <div>
+    <input v-model="topic" />
+    <button v-on:click="testFunc">Analyze!</button>
   </div>
+  <body>Type in a Subreddit and click Analyze!</body>
+  <button v-on:click="goToData">Go to data!</button>
+</div>
 </template>
 
 <script>
@@ -24,7 +24,7 @@ export default {
       alert(this.topic);
     },
     goToData() {
-      this.$emit("change");
+      this.$emit("page", { page: "data" });
     }
   }
 };

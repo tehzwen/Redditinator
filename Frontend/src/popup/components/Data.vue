@@ -10,7 +10,7 @@
 export default {
   methods: {
     goToHome() {
-      this.$emit("change");
+      this.$emit("page", { page: "home" });
     }
   }
 };
