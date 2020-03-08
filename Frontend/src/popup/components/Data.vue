@@ -1,8 +1,5 @@
 <template>
   <div class="background">
-    <keep-alive>
-      <component:is="dynamicComponent"></component>
-    </keep-alive>
     <img src="/assets/redditinator.png">
     <body>Data Page</body>
   </div>
