@@ -1,19 +1,25 @@
 <template>
-  <div class="background">
-    <img src="/assets/redditinator.png">
-    <body>Data Page</body>
-  </div>
+<div class="background">
+  <img src="/assets/redditinator.png" />
+  <body>Data Page</body>
+  <button v-on:click="goToHome">Go to home!</button>
+</div>
 </template>
 
 <script>
 export default {
+  methods: {
+    goToHome() {
+      this.$emit("change");
+    }
+  }
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang = "scss" scoped>
 h3 {
-  color: #FF4301;
+  color: #ff4301;
 }
 p {
   color: #42b983;
@@ -23,7 +29,7 @@ a {
   color: #bdbdbd;
 }
 button {
-  background-color: #FF4301;
+  background-color: #ff4301;
   color: #ffffff;
   border: none;
   text-decoration: none;
@@ -44,9 +50,8 @@ div {
 }
 h5 {
   color: #bdbdbd;
-  
 }
-body{
+body {
   color: #bdbdbd;
   font-family: "Verdana", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -57,6 +62,6 @@ button:hover {
   cursor: pointer;
 }
 .background {
-    background-color: #2c2c2c;
+  background-color: #2c2c2c;
 }
 </style>

@@ -1,15 +1,14 @@
 <template>
-  <div class="background">
-    <keep-alive>
-      <component:is="dynamicComponent"></component>
-    </keep-alive>
-    <img src="/assets/redditinator.png">
-    <div>
-      <input v-model="topic" />
-      <button v-on:click="testFunc">Analyze!</button>
-    </div>
-    <body>Type in a Subreddit and click Analyze!</body>
+<div class="background">
+  <keep-alive></keep-alive>
+  <img src="/assets/redditinator.png" />
+  <div>
+    <input v-model="topic" />
+    <button v-on:click="testFunc">Analyze!</button>
   </div>
+  <body>Type in a Subreddit and click Analyze!</body>
+  <button v-on:click="goToData">Go to data!</button>
+</div>
 </template>
 
 <script>
@@ -23,7 +22,10 @@ export default {
   mounted() {},
   methods: {
     testFunc() {
-      alert(this.topic)
+      alert(this.topic);
+    },
+    goToData() {
+      this.$emit("change");
     }
   }
 };
@@ -32,7 +34,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang = "scss" scoped>
 h3 {
-  color: #FF4301;
+  color: #ff4301;
 }
 p {
   color: #42b983;
@@ -42,7 +44,7 @@ a {
   color: #bdbdbd;
 }
 button {
-  background-color: #FF4301;
+  background-color: #ff4301;
   color: #ffffff;
   border: none;
   text-decoration: none;
@@ -63,9 +65,8 @@ div {
 }
 h5 {
   color: #bdbdbd;
-  
 }
-body{
+body {
   color: #bdbdbd;
   font-family: "Verdana", Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -76,6 +77,6 @@ button:hover {
   cursor: pointer;
 }
 .background {
-    background-color: #2c2c2c;
+  background-color: #2c2c2c;
 }
 </style>
