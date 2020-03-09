@@ -1,30 +1,16 @@
 <template>
 <div class="background">
   <img src="/assets/redditinator.png" />
-  <div>
-    <input v-model="topic" />
-    <button v-on:click="testFunc">Analyze!</button>
-  </div>
-  <body>Type in a Subreddit and click Analyze!</body>
-  <button v-on:click="goToData">Go to data!</button>
+  <body>Data Page</body>
+  <button v-on:click="goToHome">Go to home!</button>
 </div>
 </template>
 
 <script>
 export default {
-  name: "Home",
-  data: () => {
-    return {
-      topic: null
-    };
-  },
-  mounted() {},
   methods: {
-    testFunc() {
-      alert(this.topic);
-    },
-    goToData() {
-      this.$emit("page", { page: "data" });
+    goToHome() {
+      this.$emit("page", { page: "home" });
     }
   }
 };

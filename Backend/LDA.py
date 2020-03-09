@@ -23,9 +23,20 @@ stop_words.extend(['from', 'subject', 're', 'edu', 'use', 'lines']) #temp
 
 # Referencing tutorial: https://www.machinelearningplus.com/nlp/topic-modeling-gensim-python/
 
+def getPosts(subreddit):
+        url = "http://localhost:4000/posts?subreddit="+subreddit
+
+        headers = {
+        'Content-Type': 'text/plain'
+        }
+
+        response = requests.request("GET", url, headers=headers)
+        data = response.json()
+        return data
+
 def getComments(postID):
-        #url = "http://167.172.132.5:4000/comments?postID="+postID+"&topLevel=true"
-        url = "http://167.172.132.5:4000/comments?postID="+postID
+        url = "http://localhost:4000/comments?postID="+postID+"&topLevel=true"
+        #url = "http://localhost:4000/comments?postID="+postID
 
         #payload = "{\n\"subreddits\":"+str(subreddits).replace("\'", "\"")+",\n\"to\":"+end+",\n\"from\":"+start+"\n}"
         headers = {
@@ -37,23 +48,25 @@ def getComments(postID):
         data = response.json()
         return data
 
-res = getComments("apyg0h")
+posts = getPosts("witcher")
 
-# Each email = one document
-#df = pd.read_json('https://raw.githubusercontent.com/selva86/datasets/master/newsgroups.json')
+postIds = []
+for post in posts:
+        if post['num_comments'] != '0':
+                postIds.append(post['id'])
+        
+print(postIds)
 
-# df.head()
-# data = df.content.values.tolist()
-
+#res = getComments("fboo5x")
 data = []
-for val in res:
-        pprint(val['body'])
-        temp = val['body']
-        data.append(temp)
+for postId in postIds:
+        res = getComments(postId)
 
-# Remove Emails, temp
-print(data)
-#data = [re.sub('\S*@\S*\s?', '', sent) for sent in data]
+        for val in res:
+                #pprint(val['body'])
+                temp = val['body']
+                data.append(temp)
+
 
 # Remove new line characters
 data = [re.sub('\s+', ' ', sent) for sent in data]
@@ -117,7 +130,7 @@ corpus = [id2word.doc2bow(text) for text in texts]
 
 lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
                                            id2word=id2word,
-                                           num_topics=2,
+                                           num_topics=5,
                                            random_state=100,
                                            update_every=1,
                                            chunksize=100,
