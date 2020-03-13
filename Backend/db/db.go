@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -188,4 +189,29 @@ func (db *MyDB) GetTopLevelComments(postID string) ([]reddit.PostComment, error)
 	}
 
 	return comments, nil
+}
+
+func (db *MyDB) GetPostsBetweenDates(now, then string) ([]reddit.SubredditPost, error) {
+	myPosts := []reddit.SubredditPost{}
+	query := "SELECT * FROM post WHERE created_utc > " + then + " and created_utc < " + now
+
+	rows, err := db.DB.Query(query)
+
+	if err != nil {
+		return myPosts, errors.New("Error running query: " + query)
+	}
+
+	for rows.Next() {
+		p := reddit.SubredditPost{}
+		err := rows.Scan(&p.ID, &p.SubredditID, &p.Title, &p.Score, &p.Author, &p.Sentiment.SentimentPos, &p.Sentiment.SentimentNeg,
+			&p.Sentiment.SentimentNeu, &p.Sentiment.SentimentOverall, &p.NSFW, &p.SelfText, &p.ThumbnailURL, &p.NumComments,
+			&p.FullLink, &p.IsVideo, &p.TimeCreated)
+
+		if err != nil {
+			return myPosts, errors.New("Error scanning row")
+		}
+		myPosts = append(myPosts, p)
+	}
+
+	return myPosts, nil
 }

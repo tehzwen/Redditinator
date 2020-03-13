@@ -65,6 +65,11 @@ func main() {
 		DailyRedditFetch(w, r, myDB)
 	})
 
+	//WIP - handler for updating scores of past comments/posts (INCOMPLETE)
+	r.HandleFunc("/update", func(w http.ResponseWriter, r *http.Request) {
+		HandleUpdate(w, r, myDB)
+	}).Methods("GET")
+
 	fmt.Println("Now serving on port 4000..")
 	http.ListenAndServe(":4000", handlers.CORS(headers, methods, origins)(r))
 
