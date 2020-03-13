@@ -7,21 +7,49 @@
   </div>
   <body>Type in a Subreddit and click Analyze!</body>
   <button v-on:click="goToData">Go to data!</button>
+  <div v-if="sentimentValue !== null">
+    <p>{{sentimentValue.SentimentOverall}}</p>
+  </div>
 </div>
 </template>
 
 <script>
+import Axios from "axios";
+
 export default {
   name: "Home",
   data: () => {
     return {
-      topic: null
+      topic: null,
+      port: null,
+      sentimentValue: null
     };
   },
-  mounted() {},
+  mounted() {
+    let port = chrome.extension.connect({
+      name: "Sample Communication"
+    });
+
+    this.port = port;
+    Axios.get("http://167.172.132.5:4000/posts?subreddit=alberta")
+      .then(res => {
+        port.postMessage(res);
+      })
+      .catch(err => {
+        port.postMessage(err);
+      });
+  },
   methods: {
     testFunc() {
-      alert(this.topic);
+      Axios.post("http://167.172.132.5:4000/sentiment", {
+        text: this.topic
+      })
+        .then(res => {
+          this.sentimentValue = res.data;
+        })
+        .catch(err => {
+          this.port.postMessage(err);
+        });
     },
     goToData() {
       this.$emit("page", { page: "data" });
