@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/tehzwen/govader"
+	"github.com/jonreiter/govader"
 )
 
 type Sentiment struct {

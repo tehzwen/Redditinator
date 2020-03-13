@@ -215,3 +215,32 @@ func (db *MyDB) GetPostsBetweenDates(now, then string) ([]reddit.SubredditPost, 
 
 	return myPosts, nil
 }
+
+type AuthorCount struct {
+	Author string `json:"author" db:"author"`
+	Count  int    `json:"count" db:"cou"`
+}
+
+func (db *MyDB) GetTopAuthorsPerSubreddit(subredditName string) ([]AuthorCount, error) {
+
+	myAuthorCounts := []AuthorCount{}
+
+	query := "SELECT author, COUNT( author ) AS cou FROM post p, subreddit s WHERE p.subreddit_id=s.id AND s.name ='" + subredditName + "' GROUP BY author ORDER BY cou DESC"
+	rows, err := db.DB.Query(query)
+
+	if err != nil {
+		return myAuthorCounts, errors.New("Error running query: " + query)
+	}
+
+	for rows.Next() {
+		p := AuthorCount{}
+		err := rows.Scan(&p.Author, &p.Count)
+
+		if err != nil {
+			return myAuthorCounts, errors.New("Error scanning row")
+		}
+		myAuthorCounts = append(myAuthorCounts, p)
+	}
+
+	return myAuthorCounts, nil
+}

@@ -111,6 +111,21 @@ func CollectDataForSubreddits(w http.ResponseWriter, r *http.Request, DB db.MyDB
 	json.NewEncoder(w).Encode(rClient)
 }
 
+func GetAuthors(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
+	params := r.URL.Query()
+	subredditQuery := params.Get("subreddit")
+
+	if subredditQuery == "" {
+		w.Write([]byte("Need to provide subreddit query field"))
+	} else {
+		vals, err := DB.GetTopAuthorsPerSubreddit(subredditQuery)
+		if err != nil {
+			panic(err)
+		}
+		json.NewEncoder(w).Encode(vals)
+	}
+}
+
 func GetPosts(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 	params := r.URL.Query()
 	subredditQuery := params.Get("subreddit")

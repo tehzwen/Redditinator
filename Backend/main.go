@@ -52,6 +52,11 @@ func main() {
 		GetPosts(w, r, myDB)
 	}).Methods("GET")
 
+	//Queries - subreddit (required, gets top authors of posts per subreddit)
+	r.HandleFunc("/authors", func(w http.ResponseWriter, r *http.Request) {
+		GetAuthors(w, r, myDB)
+	}).Methods("GET")
+
 	/* Queries -
 	subreddit(optional search for comments of a certain subreddit)
 	postID(optional search for comments by postid)
