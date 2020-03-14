@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/exec"
-	"runtime"
 	"strconv"
 	"sync"
 	"time"
@@ -23,34 +21,27 @@ type CollectRequest struct {
 }
 
 type AnalyzeRequest struct {
-	Text  string `json:"text"`
+	PostID  string `json:"id"`
 	Topic string `json:"topic"`
 }
 
-func AnalyzeTopics(w http.ResponseWriter, r *http.Request) {
+func AnalyzeTopics(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 	anRequest := AnalyzeRequest{}
 	err := json.NewDecoder(r.Body).Decode(&anRequest)
 	if err != nil {
 		fmt.Println(err)
 	}
-	const GOOS string = runtime.GOOS
-	var pythonString string
 
-	if GOOS == "linux" {
-		pythonString = "python3"
-	} else if GOOS == "windows" {
-		pythonString = "py"
+	if (anRequest.PostID == "" || anRequest.Topic == "") {
+		w.Write([]byte("Need to provide subreddit query field"))
+
+	} else {
+		err := DB.UpdateTopic(anRequest.PostID, anRequest.Topic)
+		if err != nil {
+			panic(err)
+		}
 	}
-
-	c := exec.Command(pythonString, "./LDA.py", anRequest.Text)
-	out, err := c.Output()
-	if err != nil {
-		panic(err)
-	}
-
-	//output := string(out)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(string(out)))
+	
 }
 
 func CollectDataForSubreddits(w http.ResponseWriter, r *http.Request, DB db.MyDB) {

@@ -51,6 +51,7 @@ type SubredditPost struct {
 	SubredditName string `json:"subreddit_name"`
 	ThumbnailURL  string `json:"url" db:"thumbnail_url"`
 	Title         string `json:"title" db:"title"`
+	Topic         string `json:"topic" db:"topic"`
 	Sentiment     Sentiment
 	Comments      []PostComment
 }

@@ -48,8 +48,19 @@ def getComments(postID):
         data = response.json()
         return data
 
-posts = getPosts("witcher")
+def updateTopic(postID, topic):
+        url = "localhost:4000/topic"
 
+        payload = "{ \n\"id\":"+postID+ "\n\"topic\":"+topic+" \n}"
+        headers = {
+        'Content-Type': 'text/plain'
+        }
+
+        response = requests.request("POST", url, headers=headers, data = payload)
+        return response
+
+
+posts = getPosts("edmonton")        
 postIds = []
 for post in posts:
         if post['num_comments'] != '0':
@@ -117,7 +128,7 @@ data_words_bigrams = make_bigrams(data_words_nostops)
 nlp = spacy.load("en_core_web_sm", disable=['parser', 'ner'])
 
 # Do lemmatization keeping only nouns
-data_lemmatized = lemmatization(data_words_bigrams, allowed_postags=['NOUN'])
+data_lemmatized = lemmatization(data_words_bigrams)
 
 # Create Dictionary
 id2word = corpora.Dictionary(data_lemmatized)
@@ -130,7 +141,7 @@ corpus = [id2word.doc2bow(text) for text in texts]
 
 lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
                                            id2word=id2word,
-                                           num_topics=5,
+                                           num_topics=10,
                                            random_state=100,
                                            update_every=1,
                                            chunksize=100,
