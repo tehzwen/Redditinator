@@ -20,29 +20,9 @@ func HandleUpdate(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 	json.NewEncoder(w).Encode(posts)
 }
 
-func ScrapePage(post *reddit.SubredditPost, c *colly.Collector) {
-	oldString := strings.Replace(post.FullLink, "www", "old", 1)
-
-	c.OnHTML(".score", func(e *colly.HTMLElement) {
-		if strings.Contains(e.Text, "upvoted") {
-			fmt.Println("Here: ", e.Text)
-			words := strings.Fields(e.Text)
-			//fmt.Println(words[0])
-			score, err := strconv.Atoi(words[0])
-			if err != nil {
-				panic(err)
-			}
-			post.Score = score
-			fmt.Println(post.Score)
-
-		}
-	})
-
-	c.Visit(oldString)
-}
-
 //Update the posts values for the past week
 func UpdatePosts(DB db.MyDB) []reddit.SubredditPost {
+
 	//get current time
 	now := time.Now().Unix()
 	then := now - 604800
@@ -60,22 +40,47 @@ func UpdatePosts(DB db.MyDB) []reddit.SubredditPost {
 		colly.Async(false),
 	)
 
-	c.Limit(&colly.LimitRule{
-		RandomDelay: 5 * time.Second,
-	})
+	// c.Limit(&colly.LimitRule{
+	// 	//RandomDelay: time.Duration(rand.Intn(5)) * time.Second,
+	// 	RandomDelay: 15 * time.Second,
+	// 	Parallelism: 1,
+	// })
 
 	c.OnError(func(r *colly.Response, err error) {
 		fmt.Println(err)
 	})
 
+	currentPost := &reddit.SubredditPost{}
+
+	c.OnHTML("div[class=linkinfo]", func(e *colly.HTMLElement) {
+		scoreText := e.ChildText(".number")
+		val := strings.Replace(scoreText, ",", "", -1)
+		score, err := strconv.Atoi(val)
+		if err != nil {
+			panic(err)
+		}
+
+		if score != 1 {
+			currentPost.Score = score
+			DB.UpdatePost((*currentPost))
+		}
+	})
+
+	count := 0
+	fmt.Println("Posts to scrape: ", len(posts))
+
 	//loop through posts and visit their main pages
 	for i := 0; i < len(posts); i++ {
-		ScrapePage(&posts[i], c)
-	}
-	//oldString := strings.Replace(posts[0].FullLink, "www", "old", 1)
+		currentPost = &posts[i]
+		oldString := strings.Replace(posts[i].FullLink, "www", "old", 1)
+		c.Visit(oldString)
+		count++
 
-	//fmt.Println(oldString)
-	//ScrapePage(oldString, c)
+		progress := fmt.Sprintf("%.2f", (float32(count)/float32(len(posts)))*100)
+
+		fmt.Println(progress, "% Complete")
+	}
+	c.Wait()
 
 	return posts
 }

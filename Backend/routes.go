@@ -28,7 +28,6 @@ type AnalyzeRequest struct {
 }
 
 func AnalyzeTopics(w http.ResponseWriter, r *http.Request) {
-
 	anRequest := AnalyzeRequest{}
 	err := json.NewDecoder(r.Body).Decode(&anRequest)
 	if err != nil {
@@ -204,6 +203,20 @@ func AnalyzeSentiment(w http.ResponseWriter, r *http.Request) {
 	}
 	sent := reddit.GetSentiment(req.Text)
 	json.NewEncoder(w).Encode(sent)
+}
+
+func UpdatePost(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
+	req := reddit.SubredditPost{}
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = DB.UpdatePost(req)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Println(err)
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func DailyRedditFetch(w http.ResponseWriter, r *http.Request, DB db.MyDB) {

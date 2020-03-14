@@ -51,6 +51,9 @@ func main() {
 	r.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
 		GetPosts(w, r, myDB)
 	}).Methods("GET")
+	r.HandleFunc("/posts", func(w http.ResponseWriter, r *http.Request) {
+		UpdatePost(w, r, myDB)
+	}).Methods("PUT")
 
 	//Queries - subreddit (required, gets top authors of posts per subreddit)
 	r.HandleFunc("/authors", func(w http.ResponseWriter, r *http.Request) {

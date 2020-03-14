@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"../reddit"
 	_ "github.com/denisenkom/go-mssqldb"
@@ -75,6 +76,20 @@ func (db *MyDB) AddPost(p reddit.SubredditPost) error {
 		p.ID, p.SubredditID, titleString, p.Score, p.Author, p.Sentiment.SentimentPos, p.Sentiment.SentimentNeg,
 		p.Sentiment.SentimentNeu, p.Sentiment.SentimentOverall, p.NSFW, bodyString, p.ThumbnailURL, p.NumComments,
 		p.FullLink, p.IsVideo, p.TimeCreated)
+	_, err := db.DB.Exec(query)
+	return err
+}
+
+func (db *MyDB) UpdatePost(p reddit.SubredditPost) error {
+	titleString := strings.ReplaceAll(p.Title, "'", "")
+	bodyString := strings.ReplaceAll(p.SelfText, "'", "")
+
+	query := fmt.Sprintf(`updatePost '%s', '%s', %d, '%s', %f, %f, %f, %f, %t, '%s', '%s', %d, '%s', %t, %d`,
+		p.ID, titleString, p.Score, p.Author, p.Sentiment.SentimentPos, p.Sentiment.SentimentNeg,
+		p.Sentiment.SentimentNeu, p.Sentiment.SentimentOverall, p.NSFW, bodyString, p.ThumbnailURL, p.NumComments,
+		p.FullLink, p.IsVideo, p.TimeCreated)
+
+	fmt.Println(time.Now(), " updated post with id of ", p.ID)
 	_, err := db.DB.Exec(query)
 	return err
 }
