@@ -75,7 +75,8 @@ func (db *MyDB) AddPost(p reddit.SubredditPost) error {
 	query := fmt.Sprintf(`addPost '%s', '%s', '%s', %d, '%s', %f, %f, %f, %f, %t, '%s', '%s', %d, '%s', %t, %d, '%s'`,
 		p.ID, p.SubredditID, titleString, p.Score, p.Author, p.Sentiment.SentimentPos, p.Sentiment.SentimentNeg,
 		p.Sentiment.SentimentNeu, p.Sentiment.SentimentOverall, p.NSFW, bodyString, p.ThumbnailURL, p.NumComments,
-		p.FullLink, p.IsVideo, p.TimeCreated, p.Topic)
+		p.FullLink, p.IsVideo, p.TimeCreated, p.Topic.String)
+
 	_, err := db.DB.Exec(query)
 	return err
 }
@@ -93,7 +94,7 @@ func (db *MyDB) UpdatePost(p reddit.SubredditPost) error {
 	query := fmt.Sprintf(`updatePost '%s', '%s', %d, '%s', %f, %f, %f, %f, %t, '%s', '%s', %d, '%s', %t, %d, '%s'`,
 		p.ID, titleString, p.Score, p.Author, p.Sentiment.SentimentPos, p.Sentiment.SentimentNeg,
 		p.Sentiment.SentimentNeu, p.Sentiment.SentimentOverall, p.NSFW, bodyString, p.ThumbnailURL, p.NumComments,
-		p.FullLink, p.IsVideo, p.TimeCreated, p.Topic)
+		p.FullLink, p.IsVideo, p.TimeCreated, p.Topic.String)
 
 	fmt.Println(time.Now(), " updated post with id of ", p.ID)
 	_, err := db.DB.Exec(query)
@@ -120,9 +121,8 @@ func (db *MyDB) GetPosts(subreddit string) ([]reddit.SubredditPost, error) {
 		p := reddit.SubredditPost{}
 		err := rows.Scan(&p.ID, &p.SubredditID, &p.Title, &p.Score, &p.Author, &p.Sentiment.SentimentPos, &p.Sentiment.SentimentNeg,
 			&p.Sentiment.SentimentNeu, &p.Sentiment.SentimentOverall, &p.NSFW, &p.SelfText, &p.ThumbnailURL, &p.NumComments,
-			&p.FullLink, &p.IsVideo, &p.TimeCreated, &p.Topic)
-		
-		fmt.Sprintf("here")
+			&p.FullLink, &p.IsVideo, &p.TimeCreated, &p.Topic.String)
+
 		if err != nil {
 			panic(err)
 		}
@@ -266,4 +266,3 @@ func (db *MyDB) GetTopAuthorsPerSubreddit(subredditName string) ([]AuthorCount, 
 
 	return myAuthorCounts, nil
 }
-

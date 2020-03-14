@@ -1,6 +1,7 @@
 package reddit
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -38,20 +39,20 @@ type CommentData struct {
 }
 
 type SubredditPost struct {
-	Author        string `json:"author" db:"author"`
-	TimeCreated   int64  `json:"created_utc" db:"created_utc"`
-	FullLink      string `json:"full_link" db:"full_link"`
-	ID            string `json:"id" db:"id"`
-	IsVideo       bool   `json:"is_video" db:"is_video"`
-	NumComments   int    `json:"num_comments" db:"num_comments"`
-	NSFW          bool   `json:"over_18" db:"nsfw"`
-	Score         int    `json:"score" db:"score"`
-	SelfText      string `json:"selftext" db:"self_text"`
-	SubredditID   string `json:"subreddit_id" db:"subreddit_id"`
-	SubredditName string `json:"subreddit_name"`
-	ThumbnailURL  string `json:"url" db:"thumbnail_url"`
-	Title         string `json:"title" db:"title"`
-	Topic         string `json:"topic" db:"topic"`
+	Author        string         `json:"author" db:"author"`
+	TimeCreated   int64          `json:"created_utc" db:"created_utc"`
+	FullLink      string         `json:"full_link" db:"full_link"`
+	ID            string         `json:"id" db:"id"`
+	IsVideo       bool           `json:"is_video" db:"is_video"`
+	NumComments   int            `json:"num_comments" db:"num_comments"`
+	NSFW          bool           `json:"over_18" db:"nsfw"`
+	Score         int            `json:"score" db:"score"`
+	SelfText      string         `json:"selftext" db:"self_text"`
+	SubredditID   string         `json:"subreddit_id" db:"subreddit_id"`
+	SubredditName string         `json:"subreddit_name"`
+	ThumbnailURL  string         `json:"url" db:"thumbnail_url"`
+	Title         string         `json:"title" db:"title"`
+	Topic         sql.NullString `json:"topic" db:"topic"`
 	Sentiment     Sentiment
 	Comments      []PostComment
 }
