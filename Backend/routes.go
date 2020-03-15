@@ -33,7 +33,7 @@ func AnalyzeTopics(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 	}
 
 	if (anRequest.PostID == "" || anRequest.Topic == "") {
-		w.Write([]byte("Need to provide subreddit query field"))
+		w.Write([]byte("Need to provide body fields"))
 
 	} else {
 		err := DB.UpdateTopic(anRequest.PostID, anRequest.Topic)
