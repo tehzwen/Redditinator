@@ -62,9 +62,7 @@ def getPosts(subreddit):
 
 def getComments(postID):
         url = "http://localhost:4000/comments?postID="+postID+"&topLevel=true"
-        #url = "http://localhost:4000/comments?postID="+postID
-
-        #payload = "{\n\"subreddits\":"+str(subreddits).replace("\'", "\"")+",\n\"to\":"+end+",\n\"from\":"+start+"\n}"
+   
         headers = {
         'Content-Type': 'text/plain'
         }
@@ -87,12 +85,11 @@ def updateTopic(postID, topic):
 
 
 posts = getPosts("edmonton")        
-# postIds = []
+
 data = []
 for post in posts:
         if post['num_comments'] != '0':
                 postId = post['id']
-                # postIds.append(post['id'])
                 
                 postComments = []
                 postComments.append(post['title'])
@@ -112,29 +109,9 @@ for post in posts:
                 commonNoun = fdist.most_common(1)
                 if (len(commonNoun) != 0 and commonNoun[0][0].isalpha() and RUNUPDATE):
                         updateTopic(postId, commonNoun[0][0].lower())
-                        # print(commonNoun[0][0])
         
-
-#res = getComments("fboo5x")
-# data = []
-# for postId in postIds:
-#         res = getComments(postId)
-#         postComments = []
-#         for val in res:
-#                 #pprint(val['body'])
-#                 temp = val['body']
-#                 postComments.append(temp)
-#                 data.append(temp)
-#         # print(" ".join(postComments))
-        
-#         allWords = [word for (word, pos) in nltk.pos_tag(nltk.word_tokenize(" ".join(postComments))) if pos[0] == 'N']
-#         #allWords = removeSymbols(allWords)
-#         fdist = FreqDist(allWords)
-#         commonNoun = fdist.most_common(1)
-#         if (len(commonNoun) != 0 and commonNoun[0][0].isalpha() and RUNUPDATE):
-#                 updateTopic(postId, commonNoun[0][0].lower())
-
 print("Updated post topics! Analyzing subreddit topics.....")
+
 # Remove new line characters
 data = [re.sub('\s+', ' ', sent) for sent in data]
 
