@@ -121,7 +121,7 @@ func (db *MyDB) GetPosts(subreddit string) ([]reddit.SubredditPost, error) {
 		p := reddit.SubredditPost{}
 		err := rows.Scan(&p.ID, &p.SubredditID, &p.Title, &p.Score, &p.Author, &p.Sentiment.SentimentPos, &p.Sentiment.SentimentNeg,
 			&p.Sentiment.SentimentNeu, &p.Sentiment.SentimentOverall, &p.NSFW, &p.SelfText, &p.ThumbnailURL, &p.NumComments,
-			&p.FullLink, &p.IsVideo, &p.TimeCreated, &p.Topic.String)
+			&p.FullLink, &p.IsVideo, &p.TimeCreated, &p.Topic)
 
 		if err != nil {
 			panic(err)
