@@ -231,6 +231,33 @@ func (db *MyDB) GetPostsBetweenDates(now, then string) ([]reddit.SubredditPost, 
 	return myPosts, nil
 }
 
+type SubredditAvgSentiment struct {
+	Name    string  `json:"name" db:"name"`
+	Average float32 `json:"average" db:"average"`
+}
+
+func (db *MyDB) GetAverageSentimentOfSubreddits() ([]SubredditAvgSentiment, error) {
+	mySentimentAverages := []SubredditAvgSentiment{}
+	query := "SELECT s2.name, SUM(sentiment_overall)/COUNT(*) AS average FROM post, subreddit s2 WHERE post.subreddit_id =s2.id GROUP BY s2.name"
+	rows, err := db.DB.Query(query)
+
+	if err != nil {
+		return mySentimentAverages, errors.New("Error running query: " + query)
+	}
+
+	for rows.Next() {
+		p := SubredditAvgSentiment{}
+		err := rows.Scan(&p.Name, &p.Average)
+
+		if err != nil {
+			return mySentimentAverages, errors.New("Error scanning row")
+		}
+		mySentimentAverages = append(mySentimentAverages, p)
+	}
+
+	return mySentimentAverages, nil
+}
+
 type AuthorCount struct {
 	Author string `json:"author" db:"author"`
 	Count  int    `json:"count" db:"cou"`
@@ -239,7 +266,6 @@ type AuthorCount struct {
 func (db *MyDB) GetTopAuthorsPerSubreddit(subredditName string) ([]AuthorCount, error) {
 
 	myAuthorCounts := []AuthorCount{}
-
 	query := "SELECT author, COUNT( author ) AS cou FROM post p, subreddit s WHERE p.subreddit_id=s.id AND s.name ='" + subredditName + "' GROUP BY author ORDER BY cou DESC"
 	rows, err := db.DB.Query(query)
 
