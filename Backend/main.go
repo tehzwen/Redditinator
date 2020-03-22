@@ -44,7 +44,7 @@ func main() {
 
 	//WIP
 	r.HandleFunc("/topic", func(w http.ResponseWriter, r *http.Request) {
-		AnalyzeTopics(w, r)
+		AnalyzeTopics(w, r, myDB)
 	}).Methods("POST")
 
 	//Queries - subreddit(optional search for posts of a certain subreddit)
