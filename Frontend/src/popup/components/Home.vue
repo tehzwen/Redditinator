@@ -2,14 +2,20 @@
 <div class="background">
   <img src="/assets/redditinator.png" />
   <div>
-    <input v-model="topic" />
-    <button v-on:click="testFunc">Analyze!</button>
+    <input
+      id="subredditSearch"
+      placeholder="subreddit"
+      v-model="subreddit.name"
+      v-on:input="handleSubredditSearch"
+    />
+    <button v-if="searchMade === true" v-on:click="handleAnalyzeSubmit">Analyze!</button>
+    <div v-if="searched.length > 0">
+      <div v-for="search in searched" v-bind:key="search.id">
+        <span v-on:click="setSearched($event, search)" class="searched-link">{{search.name}}</span>
+      </div>
+    </div>
   </div>
   <body>Type in a Subreddit and click Analyze!</body>
-  <button v-on:click="goToData">Go to data!</button>
-  <div v-if="sentimentValue !== null">
-    <p>{{sentimentValue.SentimentOverall}}</p>
-  </div>
 </div>
 </template>
 
@@ -20,39 +26,50 @@ export default {
   name: "Home",
   data: () => {
     return {
-      topic: null,
+      subreddit: {},
       port: null,
-      sentimentValue: null
+      searched: [],
+      searchMade: false
     };
   },
   mounted() {
     let port = chrome.extension.connect({
       name: "Sample Communication"
     });
-
     this.port = port;
-    Axios.get("http://167.172.132.5:4000/posts?subreddit=alberta")
-      .then(res => {
-        port.postMessage(res);
-      })
-      .catch(err => {
-        port.postMessage(err);
-      });
+    document.getElementById("subredditSearch").focus(); //forces the extension to focus the input right away
+    // Axios.get("http://167.172.132.5:4000/posts?subreddit=alberta")
+    //   .then(res => {
+    //     port.postMessage(res);
+    //   })
+    //   .catch(err => {
+    //     port.postMessage(err);
+    //   });
   },
   methods: {
-    testFunc() {
-      Axios.post("http://167.172.132.5:4000/sentiment", {
-        text: this.topic
-      })
-        .then(res => {
-          this.sentimentValue = res.data;
-        })
-        .catch(err => {
-          this.port.postMessage(err);
-        });
+    setSearched(e, subreddit) {
+      this.subreddit = subreddit;
+      this.searched = [];
+      this.searchMade = true;
     },
-    goToData() {
-      this.$emit("page", { page: "data" });
+    handleSubredditSearch(e) {
+      if (e.target.value !== "") {
+        this.searchMade = false;
+        Axios.get(
+          "http://167.172.132.5:4000/subreddits?subreddit=" + e.target.value
+        )
+          .then(res => {
+            this.searched = res.data;
+          })
+          .catch(err => {
+            this.port.postMessage(err);
+          });
+      } else {
+        this.searched = [];
+      }
+    },
+    handleAnalyzeSubmit() {
+      this.$emit("page", { page: "data", state: this.subreddit });
     }
   }
 };
@@ -105,5 +122,15 @@ button:hover {
 }
 .background {
   background-color: #2c2c2c;
+}
+
+.searched-link {
+  color: #ff4301;
+  font-size: 18px;
+}
+
+.searched-link:hover {
+  cursor: pointer;
+  opacity: 70%;
 }
 </style>

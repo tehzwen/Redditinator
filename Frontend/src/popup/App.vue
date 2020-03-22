@@ -1,7 +1,7 @@
 <template>
   <div>
     <Home v-on:page="pageChange" v-if="currentLocation==='home'" />
-    <Data v-on:page="pageChange" v-if="currentLocation==='data'" />
+    <Data v-bind:state="dataState" v-on:page="pageChange" v-if="currentLocation==='data'" />
   </div>
 </template>
 
@@ -16,22 +16,34 @@ export default {
   data() {
     return {
       topic: null,
-      currentLocation: "home"
+      currentLocation: "home",
+      dataState: {},
+      homeState: {}
     };
   },
   methods: {
-    testFunc() {
-      console.log("here");
-    },
     pageChange(val) {
+      if (val.page === "data") {
+        this.dataState = { subreddit: val.state };
+      } else if (val.page === "home") {
+        this.homeState = val.state;
+      }
+
       this.currentLocation = val.page;
     }
   }
 };
 </script>
 
-<style lang="scss" scoped>
-p {
-  font-size: 20px;
+<style lang="scss">
+.row {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+}
+.col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 </style>

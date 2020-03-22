@@ -12,6 +12,7 @@ import (
 
 	"./db"
 	"./reddit"
+	"github.com/gorilla/mux"
 )
 
 type CollectRequest struct {
@@ -21,8 +22,8 @@ type CollectRequest struct {
 }
 
 type AnalyzeRequest struct {
-	PostID  string `json:"id"`
-	Topic string `json:"topic"`
+	PostID string `json:"id"`
+	Topic  string `json:"topic"`
 }
 
 func AnalyzeTopics(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
@@ -32,7 +33,7 @@ func AnalyzeTopics(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 		fmt.Println(err)
 	}
 
-	if (anRequest.PostID == "" || anRequest.Topic == "") {
+	if anRequest.PostID == "" || anRequest.Topic == "" {
 		w.Write([]byte("Need to provide body fields"))
 
 	} else {
@@ -41,7 +42,7 @@ func AnalyzeTopics(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 			panic(err)
 		}
 	}
-	
+
 }
 
 func CollectDataForSubreddits(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
@@ -113,6 +114,23 @@ func GetAuthors(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
 			panic(err)
 		}
 		json.NewEncoder(w).Encode(vals)
+	}
+}
+
+func GetSubreddits(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
+	params := r.URL.Query()
+	subredditQuery := params.Get("subreddit")
+
+	if subredditQuery == "" {
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		searched, err := DB.SubredditSearch(subredditQuery)
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+		} else {
+			json.NewEncoder(w).Encode(searched)
+		}
 	}
 }
 
@@ -282,4 +300,26 @@ func LogComments(vals []reddit.PostComment) {
 
 	logger := log.New(f, "Comment Fetch: ", log.LstdFlags)
 	logger.Println(string(testData))
+}
+
+func GetTopicOccurance(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
+	vars := mux.Vars(r)
+	occurance, err := DB.TopicOccurance(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		json.NewEncoder(w).Encode(occurance)
+	}
+}
+
+func GetSubredditSentiment(w http.ResponseWriter, r *http.Request, DB db.MyDB) {
+	vars := mux.Vars(r)
+	occurance, err := DB.SubredditSentiment(vars["id"])
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+	} else {
+		json.NewEncoder(w).Encode(occurance)
+	}
 }

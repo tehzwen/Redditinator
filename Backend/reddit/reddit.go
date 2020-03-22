@@ -25,8 +25,8 @@ type Reddit struct {
 }
 
 type Subreddit struct {
-	ID   string `db:"id"`
-	Name string `db:"name"`
+	ID   string `json:"id" db:"id"`
+	Name string `json:"name" db:"name"`
 }
 
 type SubredditData struct {

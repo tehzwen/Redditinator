@@ -32,6 +32,18 @@ func main() {
 		CollectDataForSubreddits(w, r, myDB)
 	}).Methods("POST")
 
+	r.HandleFunc("/subreddits", func(w http.ResponseWriter, r *http.Request) {
+		GetSubreddits(w, r, myDB)
+	}).Methods("GET")
+
+	r.HandleFunc("/subreddits/{id}/sentiment", func(w http.ResponseWriter, r *http.Request) {
+		GetSubredditSentiment(w, r, myDB)
+	}).Methods("GET")
+
+	r.HandleFunc("/subreddits/{id}/topics", func(w http.ResponseWriter, r *http.Request) {
+		GetTopicOccurance(w, r, myDB)
+	}).Methods("GET")
+
 	/*
 		Takes a post request body in the form of
 		{

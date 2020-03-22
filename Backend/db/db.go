@@ -292,3 +292,89 @@ func (db *MyDB) GetTopAuthorsPerSubreddit(subredditName string) ([]AuthorCount, 
 
 	return myAuthorCounts, nil
 }
+
+func (db *MyDB) SubredditSearch(searchValue string) ([]reddit.Subreddit, error) {
+	mySubreddits := []reddit.Subreddit{}
+	query := "SELECT * FROM subreddit WHERE name LIKE '%" + searchValue + "%' ORDER BY name"
+	rows, err := db.DB.Query(query)
+
+	if err != nil {
+		fmt.Println(err)
+		return mySubreddits, errors.New("Error running query: " + query)
+	}
+
+	for rows.Next() {
+		r := reddit.Subreddit{}
+		err := rows.Scan(&r.ID, &r.Name)
+
+		if err != nil {
+			return mySubreddits, errors.New("Error scanning row")
+		}
+		mySubreddits = append(mySubreddits, r)
+	}
+
+	return mySubreddits, nil
+}
+
+type TopicCount struct {
+	Topic string `json:"topic" db:"topic"`
+	Count int    `json:"count" db:"cou"`
+}
+
+func (db *MyDB) TopicOccurance(subredditID string) ([]TopicCount, error) {
+	myTopics := []TopicCount{}
+	query := "SELECT DISTINCT topic, COUNT(topic) AS cou FROM post WHERE post.subreddit_id='" + subredditID + "' AND topic != '' GROUP BY topic ORDER BY cou DESC"
+
+	rows, err := db.DB.Query(query)
+
+	if err != nil {
+		fmt.Println(err)
+		return myTopics, errors.New("Error running query: " + query)
+	}
+
+	for rows.Next() {
+		t := TopicCount{}
+		err := rows.Scan(&t.Topic, &t.Count)
+
+		if err != nil {
+			return myTopics, errors.New("Error scanning row")
+		}
+		myTopics = append(myTopics, t)
+	}
+
+	return myTopics, nil
+}
+
+type SubredditSentiment struct {
+	PostSentiment    float64 `json:"postSent" db:"postSent"`
+	PostPositive     float64 `json:"postSentPos" db:"postSentPos"`
+	PostNegative     float64 `json:"postSentNeg" db:"postSentNeg"`
+	PostNeutral      float64 `json:"postSentNeu" db:"postSentNeu"`
+	CommentSentiment float64 `json:"commentSent" db:"commentSent"`
+	CommentPositive  float64 `json:"commentSentPos" db:"commentSentPos"`
+	CommentNegative  float64 `json:"commentSentNeg" db:"commentSentNeg"`
+	CommentNeutral   float64 `json:"commentSentNeu" db:"commentSentNeu"`
+}
+
+func (db *MyDB) SubredditSentiment(subredditID string) (SubredditSentiment, error) {
+	mySubredditSentiment := SubredditSentiment{}
+	query := `SELECT * FROM (SELECT SUM(sentiment_overall)/COUNT(*) AS postSent, SUM(sentiment_pos )/COUNT(*) AS postSentPos, SUM(sentiment_neg )/COUNT(*) AS postSentNeg, SUM(sentiment_neu )/COUNT(*) AS postSentNeu FROM post p WHERE p.subreddit_id ='%s') AS p, 
+(SELECT SUM(sentiment_overall)/COUNT(*) AS commentSent, SUM(sentiment_pos)/COUNT(*) AS commentSentPos, SUM(sentiment_neg)/COUNT(*) AS commentSentNeg, SUM(sentiment_neu)/COUNT(*) AS commentSentNeu FROM comment c WHERE c.subreddit_id='%s') AS c `
+
+	query = fmt.Sprintf(query, subredditID, subredditID)
+	rows, err := db.DB.Query(query)
+	if err != nil {
+		return mySubredditSentiment, errors.New("Error running query: " + query)
+	}
+
+	for rows.Next() {
+		err := rows.Scan(&mySubredditSentiment.PostSentiment, &mySubredditSentiment.PostPositive, &mySubredditSentiment.PostNegative, &mySubredditSentiment.PostNeutral,
+			&mySubredditSentiment.CommentSentiment, &mySubredditSentiment.CommentPositive, &mySubredditSentiment.CommentNegative, &mySubredditSentiment.CommentNeutral)
+		if err != nil {
+			fmt.Println(err)
+			return mySubredditSentiment, errors.New("Error scanning row")
+		}
+	}
+
+	return mySubredditSentiment, nil
+}
