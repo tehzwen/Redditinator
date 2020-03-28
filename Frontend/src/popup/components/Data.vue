@@ -65,15 +65,20 @@
       <div class="col" />
     </div>
     <button class="my-button" v-on:click="goToHome">Go to home!</button>
+    <MyWordCloud />
   </div>
 </template>
 
 <script>
 import Axios from "axios";
+import MyWordCloud from "./MyWordCloud";
 
 export default {
   props: {
     state: Object
+  },
+  components: {
+    MyWordCloud
   },
   data: () => {
     return {
@@ -91,7 +96,9 @@ export default {
 
     //fetch the word cloud data for this subreddit
     Axios.get(
-      "http://167.172.132.5:4000/subreddits/" + this.state.subreddit.id + "/topics"
+      "http://167.172.132.5:4000/subreddits/" +
+        this.state.subreddit.id +
+        "/topics"
     )
       .then(res => {
         //this.port.postMessage(res);

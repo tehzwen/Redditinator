@@ -20,7 +20,8 @@
     "axios": "^0.19.2",
     "dotenv": "^8.2.0",
     "fs": "^0.0.1-security",
-    "vue": "^2.6.10"
+    "vue": "^2.6.10",
+    "vuewordcloud": "^18.7.11"
   },
   "devDependencies": {
     "@babel/core": "^7.1.2",
