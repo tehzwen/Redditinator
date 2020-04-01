@@ -1,12 +1,22 @@
 <template>
   <div style="width:500px; height:500px;">
     <vue-word-cloud
-      :words="[['romance', 19], ['horror', 3], ['fantasy', 7], ['adventure', 3]]"
-      :color="([, weight]) => weight > 10 ? 'DeepPink' : weight > 5 ? 'RoyalBlue' : 'Indigo'"
-      font-family="Roboto"
-      height="500px"
-      width="500px"
-    />
+      :words="this.words"
+      :color="['OrangeRed']"
+      :font-family="['Verdana']"
+      :spacing="0.75"
+      :font-size-ratio="25"
+    >
+      <template slot-scope="{ text, weight, word }">
+        <div
+          :title="weight"
+          style="cursor: pointer;"
+          v-on:click="onWordClick(word)"
+        >
+          {{ text }}
+        </div>
+      </template>
+    </vue-word-cloud>
   </div>
 </template>
 
@@ -14,7 +24,10 @@
 import VueWordCloud from "vuewordcloud";
 
 export default {
-  props: {},
+  props: {
+    words: Array,
+    sentiment: Object
+  },
   components: {
     [VueWordCloud.name]: VueWordCloud
   },
@@ -26,14 +39,14 @@ export default {
       name: "Sample Communication"
     });
     this.port = port;
-    this.port.postMessage(VueWordCloud);
+    this.port.postMessage(this.sentiment);
   },
   methods: {}
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style lang = "scss" scoped>
+<style lang="scss" scoped>
 h3 {
   color: #ff4301;
 }
@@ -55,7 +68,7 @@ h5 {
 }
 body {
   color: #bdbdbd;
-  font-family: "Verdana", Helvetica, Arial, sans-serif;
+  font-family: "Verdana";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

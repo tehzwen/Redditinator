@@ -3,15 +3,22 @@
     <div>
       <img src="/assets/redditinator.png" />
     </div>
-    <h1 class="subreddit-title">r/{{this.state.subreddit.name}}</h1>
+    <h1 class="subreddit-title">r/{{ this.state.subreddit.name }}</h1>
     <div class="row">
       <div class="col">
         <div class="row">
           <div class="col">
-            <button v-on:click="changeSentimentType('post')" class="my-button">Posts</button>
+            <button v-on:click="changeSentimentType('post')" class="my-button">
+              Posts
+            </button>
           </div>
           <div class="col">
-            <button v-on:click="changeSentimentType('comment')" class="my-button">Comments</button>
+            <button
+              v-on:click="changeSentimentType('comment')"
+              class="my-button"
+            >
+              Comments
+            </button>
           </div>
         </div>
         <div class="row">
@@ -22,41 +29,48 @@
               width="100px"
               height="100px"
             />
-            <p
-              class="subreddit-title"
-            >Overall: {{sentimentType === 'post' ? sentiment.postSent.toFixed(3) : sentiment.commentSent.toFixed(3)}}</p>
+            <p class="subreddit-title">
+              Overall:
+              {{
+                sentimentType === "post"
+                  ? sentiment.postSent.toFixed(3)
+                  : sentiment.commentSent.toFixed(3)
+              }}
+            </p>
           </div>
           <div class="col">
             <div v-if="sentimentType === 'post'">
               <div class="row">
-                <p
-                  class="sent-text positive-text"
-                >{{(sentiment.postSentPos * 100).toFixed(2)}}% Good</p>
+                <p class="sent-text positive-text">
+                  {{ (sentiment.postSentPos * 100).toFixed(2) }}% Good
+                </p>
               </div>
               <div class="row">
-                <p
-                  class="sent-text neutral-text"
-                >{{(sentiment.postSentNeu * 100).toFixed(2)}}% Neutral</p>
+                <p class="sent-text neutral-text">
+                  {{ (sentiment.postSentNeu * 100).toFixed(2) }}% Neutral
+                </p>
               </div>
               <div class="row">
-                <p class="sent-text negative-text">{{(sentiment.postSentNeg * 100).toFixed(2)}}% Bad</p>
+                <p class="sent-text negative-text">
+                  {{ (sentiment.postSentNeg * 100).toFixed(2) }}% Bad
+                </p>
               </div>
             </div>
             <div v-if="sentimentType === 'comment'">
               <div class="row">
-                <p
-                  class="sent-text positive-text"
-                >{{(sentiment.commentSentPos * 100).toFixed(2)}}% Good</p>
+                <p class="sent-text positive-text">
+                  {{ (sentiment.commentSentPos * 100).toFixed(2) }}% Good
+                </p>
               </div>
               <div class="row">
-                <p
-                  class="sent-text neutral-text"
-                >{{(sentiment.commentSentNeu * 100).toFixed(2)}}% Neutral</p>
+                <p class="sent-text neutral-text">
+                  {{ (sentiment.commentSentNeu * 100).toFixed(2) }}% Neutral
+                </p>
               </div>
               <div class="row">
-                <p
-                  class="sent-text negative-text"
-                >{{(sentiment.commentSentNeg * 100).toFixed(2)}}% Bad</p>
+                <p class="sent-text negative-text">
+                  {{ (sentiment.commentSentNeg * 100).toFixed(2) }}% Bad
+                </p>
               </div>
             </div>
           </div>
@@ -65,7 +79,11 @@
       <div class="col" />
     </div>
     <button class="my-button" v-on:click="goToHome">Go to home!</button>
-    <MyWordCloud />
+    <MyWordCloud
+      :words="this.topicCounts.slice(0, 25)"
+      :sentiment="this.sentiment"
+    >
+    </MyWordCloud>
   </div>
 </template>
 
@@ -102,7 +120,12 @@ export default {
     )
       .then(res => {
         //this.port.postMessage(res);
-        this.topicCounts = res.data;
+
+        //convert the data into a nested array for the word cloud
+        res.data.forEach(element => {
+          this.topicCounts.push([element.topic, element.count]);
+        });
+        //this.port.postMessage(this.topicCounts);
       })
       .catch(err => {
         this.port.postMessage("Error: ", err);
@@ -114,7 +137,7 @@ export default {
         "/sentiment"
     )
       .then(res => {
-        //this.port.postMessage(res);
+        this.port.postMessage(res);
         this.sentiment = res.data;
       })
       .then(() => {
@@ -156,7 +179,7 @@ export default {
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style lang = "scss" scoped>
+<style lang="scss" scoped>
 h3 {
   color: #ff4301;
 }
