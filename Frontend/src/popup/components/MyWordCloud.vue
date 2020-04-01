@@ -1,8 +1,8 @@
 <template>
-  <div style="width:500px; height:500px;">
+  <div style="width:250px; height:150px; margin-right:15px; margin-left:15px">
     <vue-word-cloud
       :words="this.words"
-      :color="['OrangeRed']"
+      :color="['#bdbdbd']"
       :font-family="['Verdana']"
       :spacing="0.75"
       :font-size-ratio="25"
