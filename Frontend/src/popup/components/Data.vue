@@ -76,14 +76,14 @@
           </div>
         </div>
       </div>
-      <div class="col">
-        <MyWordCloud
-          :words="this.topicCounts.slice(0, 25)"
-          :sentiment="this.sentiment"
-        />
-      </div>
+      <div class="col" />
     </div>
     <button class="my-button" v-on:click="goToHome">Go to home!</button>
+    <MyWordCloud
+      :words="this.topicCounts.slice(0, 25)"
+      :sentiment="this.sentiment"
+    >
+    </MyWordCloud>
   </div>
 </template>
 
