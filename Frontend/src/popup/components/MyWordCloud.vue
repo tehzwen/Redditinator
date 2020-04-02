@@ -1,11 +1,14 @@
 <template>
-  <div style="width:500px; height:500px;">
+  <div
+    style="width:250px; height:150px; margin-right:15px; margin-left:15px; margin-bottom:15px"
+  >
     <vue-word-cloud
       :words="this.words"
-      :color="['OrangeRed']"
+      :color="[getColor()]"
       :font-family="['Verdana']"
       :spacing="0.75"
       :font-size-ratio="25"
+      :animation-duration="250"
     >
       <template slot-scope="{ text, weight, word }">
         <div
@@ -32,16 +35,31 @@ export default {
     [VueWordCloud.name]: VueWordCloud
   },
   data: () => {
-    return {};
+    return {
+      sentimentType: "post"
+    };
   },
   mounted() {
     let port = chrome.extension.connect({
       name: "Sample Communication"
     });
     this.port = port;
-    this.port.postMessage(this.sentiment);
+    //this.port.postMessage(this.sentiment.postSent);
   },
-  methods: {}
+  methods: {
+    getColor() {
+      //this.port.postMessage(this.sentimentType);
+      var currSent =
+        this.sentimentType == "post"
+          ? this.sentiment.postSent
+          : this.sentiment.commentSent;
+      return currSent > 0 ? "#42b983" : currSent < 0 ? "#FF0000" : "#bdbdbd";
+    },
+    changeSentiment(type) {
+      this.sentimentType = type;
+      this.VueWordCloud.color = getColor();
+    }
+  }
 };
 </script>
 

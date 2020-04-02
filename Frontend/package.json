@@ -18,9 +18,11 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
+    "chart.js": "^2.9.3",
     "dotenv": "^8.2.0",
     "fs": "^0.0.1-security",
     "vue": "^2.6.10",
+    "vue-chartjs": "^3.5.0",
     "vuewordcloud": "^18.7.11"
   },
   "devDependencies": {

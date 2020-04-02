@@ -74,16 +74,20 @@
               </div>
             </div>
           </div>
+          <div class="col">
+            <MyWordCloud
+              ref="MyWordCloud"
+              :words="this.topicCounts.slice(0, 25)"
+              :sentiment="this.sentiment"
+              :sentimentType="this.sentimentType"
+            >
+            </MyWordCloud>
+          </div>
         </div>
       </div>
       <div class="col" />
     </div>
     <button class="my-button" v-on:click="goToHome">Go to home!</button>
-    <MyWordCloud
-      :words="this.topicCounts.slice(0, 25)"
-      :sentiment="this.sentiment"
-    >
-    </MyWordCloud>
   </div>
 </template>
 
@@ -137,7 +141,7 @@ export default {
         "/sentiment"
     )
       .then(res => {
-        this.port.postMessage(res);
+        //this.port.postMessage(res);
         this.sentiment = res.data;
       })
       .then(() => {
@@ -154,6 +158,7 @@ export default {
     changeSentimentType(val) {
       this.sentimentType = val;
       this.getImageClass();
+      this.$refs.MyWordCloud.changeSentiment(val);
     },
     getImageClass() {
       if (this.sentimentType === "post") {
